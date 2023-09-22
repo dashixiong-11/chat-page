@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "importHelpers": true, // 不让同样的辅助函数重复的出现在多个文件中
+    "useDefineForClassFields": true,
+    "allowSyntheticDefaultImports": true, // 允许对不包含默认导出的模块使用默认导入。
+    "baseUrl": ".", // 非相对模块的导入可以相对于baseUrl或通过下文会讲到的路径映射来进行解析
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "paths": { // 配置导出路径（这里根据自己项目执行修改）
+      "@/config*": [
+        "./src/config*"
+      ],
+      "@/hooks*": [
+        "./src/hooks*"
+      ],
+      "@/utils*": [
+        "./src/utils*"
+      ],
+    },
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": [
+    "src"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}
