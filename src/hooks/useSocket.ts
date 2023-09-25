@@ -3,8 +3,10 @@ import { path } from "@/config/urlConfig"
 import { set } from '@/utils/globalData';
 import { useThrottle } from './useThrottle';
 import { useEffect, useState, useRef } from 'react';
+import { useShowToast } from './useShowToast/useShowToast';
 
 export const useSocket = () => {
+  const {showToast} = useShowToast()
   const maxReconnectAttempts = 3; // 最大重连尝试次数
   const reconnectInterval = 3000; // 重连间隔（毫秒）
   const reconnectAttempts = useRef(0);
@@ -24,12 +26,7 @@ export const useSocket = () => {
   //   return data.token;
   // }
   useEffect(() => {
-    const _client = new Centrifuge(
-      path,
-      {
-        token: '',
-      }
-    );
+    const _client = new Centrifuge(path, { token: '', });
     _client.on('connecting', function (ctx) {
       console.log('连接中', ctx);
     }).on('connected', function (ctx) {
@@ -71,7 +68,7 @@ export const useSocket = () => {
       // })
       console.error('达到最大重连尝试次数，无法重连');
     }
-  }, 5000)
+  }, 3000)
 
   const disconnectWS = () => {
     if (client) {
@@ -80,7 +77,6 @@ export const useSocket = () => {
     }
     setClient(null)
     set('client', null)
-
 
     return {
       client

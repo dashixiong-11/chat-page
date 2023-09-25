@@ -37,7 +37,6 @@ export default defineConfig(({ mode }) => {
           target: `http://${ip}`, // 接口的域名
           changeOrigin: true,
           // secure: false, // 如果是https接口，需要配置这个参数
-          // rewrite: path => path.replace(/^\/filesystem/, '/filesystem')
         },
         '/im/connection': {
           target: `ws://${ip}`,
@@ -46,6 +45,13 @@ export default defineConfig(({ mode }) => {
         '/miniprogram': {
           target: `http://${ip}`,
           changeOrigin: true,
+          bypass: (req, res, options) => {
+            const proxyUrl = new URL(options.rewrite(req.url) || '', (options.target) as string)?.href || ''
+            console.log(proxyUrl);
+            req.headers['x-req-proxyUrl'] = proxyUrl
+            res.setHeader('x-req-proxyUrl', proxyUrl)
+          },
+          rewrite: path => path.replace(/^\/miniprogram/, '/miniprogram')
         },
         '/filesystem': {
           target: `http://${ip}`,

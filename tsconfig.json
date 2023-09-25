@@ -22,6 +22,9 @@
       "@/utils*": [
         "./src/utils*"
       ],
+      "@/com*": [
+        "./src/components*"
+      ],
     },
     /* Bundler mode */
     "moduleResolution": "bundler",
