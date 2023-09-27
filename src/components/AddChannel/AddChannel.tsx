@@ -14,15 +14,22 @@ export const AddChannel = ({ visible, cb }: PropTyep) => {
       </div>
       <div className="col">
         <span>频道名称</span>
-        <input type="text" className="channel-name" />
+        <div className="ipt">
+          <input type="text" className="channel-name--" />
+        </div>
       </div>
       <div className="col">
         <span>姓名</span>
-        <input type="text" className="name" />
+        <div className="ipt">
+
+          <input type="text" className="name" />
+        </div>
       </div>
       <div className="col">
         <span>年龄</span>
-        <input type="text" className="age" />
+        <div className="ipt">
+          <input type="text" className="age" />
+        </div>
       </div>
       <div className="col">
         <span>性别</span>

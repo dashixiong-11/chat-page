@@ -10,8 +10,6 @@ const service = axios.create({
 service.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token') || ''
-    console.log(`Bearer ${token}`);
-    
     config.headers['Authorization'] = `Bearer ${token}`
     return config
   }, error => {
@@ -20,7 +18,7 @@ service.interceptors.request.use(
 
 service.interceptors.response.use(response => {
   const res = response.data
-  if (res.code === 200) {
+  if (res.code === 0) {
     return res
   } else {
     return Promise.reject(res)

@@ -22,7 +22,7 @@
       "@/utils*": [
         "./src/utils*"
       ],
-      "@/com*": [
+      "@/components*": [
         "./src/components*"
       ],
     },

@@ -1,0 +1,30 @@
+.add-channel {
+  background: #fff;
+  -moz-box-shadow: 0px -1px 8px #333333;
+  -webkit-box-shadow: 0px -1px 8px #333333;
+  box-shadow: 0px -1px 8px #333333;
+  padding: 20px;
+  border-radius: 8px;
+  color: #808080;
+
+  .col {
+    display: flex;
+    align-items: center;
+    padding: 4px 0;
+
+    span {
+      width: 4em;
+      text-align: end;
+      margin-right: 6px;
+    }
+
+    input {
+      width: 6em;
+      border-bottom: 1px solid #eaeaea;
+    }
+
+    .ipt,.select {
+      padding: 0 1em;
+    }
+  }
+}
