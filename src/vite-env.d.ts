@@ -7,6 +7,8 @@ interface wx {
   chooseImage: ({ }: any) => void,
   checkJsApi: any,
   config: any,
-  error: any
+  error: any,
+  uploadImage: any,
+  downloadImage: any
 
 }
