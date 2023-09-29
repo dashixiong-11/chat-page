@@ -1,13 +1,15 @@
 import { post } from '@/utils/server'
-import { useEffect } from 'react'
+import { useSocket } from '@/hooks/useSocket'
+import { useEffect, TouchEventHandler, useState } from 'react'
 import { useShowToast } from '@/hooks/useShowToast/useShowToast'
 import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
 import './Home.scss'
 
 
 function Home() {
-  const miniProgram = wx.miniProgram
   const { show } = useAddChannel()
+  //const { client } = useSocket()
+
   const { showToast } = useShowToast()
   // const getChannel = async () => {
   //   const res = await post('/miniprogram/api/channels').catch(err => { })
@@ -17,10 +19,10 @@ function Home() {
 
   useEffect(() => {
     const { appId, timestamp, nonceStr, signature } = {
-      appId: "wxec4f5418142ba0c2",
-      timestamp: '1695861499',
-      nonceStr: 'dashixiong',
-      signature: '984678df891611982c4557881884800bf43eeeb0'
+      appId: "wxf1193f6efa3350b1",
+      timestamp: '3213213213',
+      nonceStr: 'ddssxx',
+      signature: '579b1a7a460f63964f65ef6673e8b7ea15b63058'
     }
 
     wx.config({
@@ -29,7 +31,7 @@ function Home() {
       timestamp: timestamp,
       nonceStr: nonceStr,
       signature: signature,
-      jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage', 'downloadImage']
+      jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage', 'downloadImage', 'uploadVoice', 'translateVoice']
     });
     wx.error(function (err: any) {
       console.log('error----', err);
@@ -45,20 +47,41 @@ function Home() {
 
 
   const onClick = () => {
-    showToast({
-      messages: 'message',
-    })
+    // client?.setToken('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySWQiOjMsIkF1dGhvcml0eUlkIjoiMyIsIkRvbWFpbiI6IiIsInN1YiI6IjMiLCJleHAiOjE2OTYxNTAwNTMsImlhdCI6MTY5NTg5MDg1M30.N-gEguHqytR0oLGwVPDMjCd2Fj-8GJtT-IdXcMNDosY')
+    // client?.connect()
+    // showToast({
+    //   messages: 'message',
+    // })
   }
   const onAddChannel = () => {
     show()
   }
 
   const startRecording = () => {
-    miniProgram.postMessage({ data: 'kaishi' })
+    wx.startRecord({
+      success: () => {
+        console.log('开始录音');
+      },
+      cancel: () => {
+        console.log('拒绝授权');
+      }
+    })
 
   }
   const stopRecording = () => {
-    miniProgram.postMessage({ data: 'jieshu' })
+    wx.stopRecord({
+      success: (res) => {
+        console.log(res.localId);
+        //uploadLocalVoice(res.localId)
+        wx.translateVoice({
+          localId: res.localId,
+          isShowProgressTips: 1,
+          success: function (res: any) {
+            alert(res.translateResult);
+          }
+        })
+      }
+    })
   }
 
   const uploadLocalImage = (localId: string | number) => {
@@ -67,38 +90,75 @@ function Home() {
       localId,
       success: (res: any) => {
         console.log('res.serverId----', res.serverId);
-        //       downloadLocalImage(res.serverId)
       }
     })
   }
-  // const downloadLocalImage = (serverId: string | number) => {
-  //   wx.downloadImage({
-  //     serverId,
-  //     success: (res: any) => {
-  //       console.log(res);
-
-  //     }
-  //   })
-  // }
   const chooseImg = () => {
     wx.chooseImage({
       count: 1, // 默认9
-      sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
-      sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+      sizeType: ['original', 'compressed'],
+      sourceType: ['album', 'camera'],
       success: function (res: any) {
-        var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+        var localIds = res.localIds;
         console.log('localIds---', localIds);
         uploadLocalImage(localIds[0])
       }
     })
   }
 
-  return <div className="home">
-    <button onClick={onClick}>连接ws</button>
-    <button onClick={onAddChannel}> 添加 频道</button>
-    <button onClick={startRecording}> 开始录音1 </button>
-    <button onClick={stopRecording}> 结束录音 </button>
-    <button onClick={chooseImg}> 上传图片 </button>
+  const [headerHeight, setHeaderHeight] = useState(0)
+  const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 })
+  const [touchEndPosition, setTouchEndPosition] = useState({ x: 0, y: 0 })
+  const [touchMovePosition, setTouchMovePosition] = useState({ x: 0, y: 0 })
+  const onTouchStart: TouchEventHandler<HTMLDivElement> = event => {
+    setTouchEndPosition({ x: 0, y: 0 })
+    const touch = event.touches[0];
+    setTouchStartPosition({ x: touch.clientX, y: touch.clientY });
+  }
+  const onTouchMove: TouchEventHandler<HTMLDivElement> = event => {
+    const touch = event.touches[0];
+    setTouchEndPosition({ x: touch.clientX, y: touch.clientY });
+  }
+  const onTouchEnd: TouchEventHandler<HTMLDivElement> = event => {
+    if (touchEndPosition.y - touchStartPosition.y >= 50) {
+      setHeaderHeight(60)
+    }
+    if (touchStartPosition.y - touchEndPosition.y > 50) {
+      setHeaderHeight(0)
+    }
+  }
+
+  return <div className="home"  >
+    <header style={{ height: headerHeight + 'px' }}>
+      <ul className="channel-list">
+        <li> 频道1</li>
+        <li> 频道2</li>
+        <li> 频道3</li>
+        <li> 频道3</li>
+        <li> 频道3</li>
+        <li> 频道3</li>
+      </ul>
+    </header>
+    <main style={{ height: `calc(100vh - ${headerHeight}px)` }} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div className="search">
+        <input type="text" className="search-ipt" placeholder='请输入想要搜索的问题' />
+        搜索
+      </div>
+      <ul className="tips">
+        <li>提示1</li>
+        <li>提示2</li>
+      </ul>
+      <div className="search-res"></div>
+      <ul className="messages">
+        <li></li>
+
+      </ul>
+      {/* <button onClick={onClick}>连接ws</button>
+      <button onClick={onAddChannel}> 添加 频道</button>
+      <button onClick={startRecording}> 开始录音 </button>
+      <button onClick={stopRecording}> 结束录音 </button>
+      <button onClick={chooseImg}> 上传图片 </button> */}
+    </main>
   </div>
 }
 
