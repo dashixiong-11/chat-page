@@ -3,11 +3,6 @@ import { ChangeEvent } from "react"
 import './useAddChannel.scss'
 import { Select } from "@/components/Select/Select"
 
-type FormItemType = {
-  type: string,
-  key: string,
-  label: string
-}
 
 const onSelected = (e: ChangeEvent<HTMLSelectElement>)=>{
   console.log(e.target.value);

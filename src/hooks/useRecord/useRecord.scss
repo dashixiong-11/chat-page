@@ -1,0 +1,20 @@
+.record-view {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.record-mask {
+    position: fixed;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+
+}

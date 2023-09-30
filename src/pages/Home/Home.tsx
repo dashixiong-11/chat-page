@@ -6,11 +6,12 @@ import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
 import './Home.scss'
 
 
+type RecordTypeType = 'nomal' | 'recoeding' | 'thinking'
 function Home() {
   const { show } = useAddChannel()
-  //const { client } = useSocket()
-
+  const [recordType, setRecordType] = useState<RecordTypeType>('nomal')
   const { showToast } = useShowToast()
+  //const { client } = useSocket()
   // const getChannel = async () => {
   //   const res = await post('/miniprogram/api/channels').catch(err => { })
   // }
@@ -109,7 +110,6 @@ function Home() {
   const [headerHeight, setHeaderHeight] = useState(0)
   const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 })
   const [touchEndPosition, setTouchEndPosition] = useState({ x: 0, y: 0 })
-  const [touchMovePosition, setTouchMovePosition] = useState({ x: 0, y: 0 })
   const onTouchStart: TouchEventHandler<HTMLDivElement> = event => {
     setTouchEndPosition({ x: 0, y: 0 })
     const touch = event.touches[0];
@@ -127,6 +127,7 @@ function Home() {
       setHeaderHeight(0)
     }
   }
+  
 
   return <div className="home"  >
     <header style={{ height: headerHeight + 'px' }}>
@@ -140,19 +141,83 @@ function Home() {
       </ul>
     </header>
     <main style={{ height: `calc(100vh - ${headerHeight}px)` }} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-      <div className="search">
-        <input type="text" className="search-ipt" placeholder='请输入想要搜索的问题' />
-        搜索
-      </div>
-      <ul className="tips">
+      <div className="main-header">
+        <div className="search">
+          <input type="text" className="search-ipt" placeholder='请输入想要搜索的问题' />
+          搜索
+        </div>
+        {/* <ul className="tips">
         <li>提示1</li>
         <li>提示2</li>
-      </ul>
-      <div className="search-res"></div>
-      <ul className="messages">
-        <li></li>
+      </ul> */}
+      </div>
+      <div className="search-res">
+        <div className='res-block' style={{ height: '200px' }}> message 1</div>
+        <div className='res-block' style={{ height: '200px' }}> message 2</div>
+        <div className='res-block' style={{ height: '200px' }}> message 3</div>
+        <div className='res-block' style={{ height: '200px' }}> message 4</div>
 
-      </ul>
+      </div>
+      <div className="message-action">
+        <ul className="messages">
+          <li>
+            <div className="user-message">
+              <img src="" className='avatar' alt="" />
+              <span className='name'>张三 </span>
+              <span className='message'>这是一条消息
+                很长很长很长很长
+                很长很长很长很长
+                很长很长很长很长
+                很长很长很长很长
+              </span>
+            </div>
+          </li>
+          <li className='active'>
+            <div className="user-message">
+              <img src="" className='avatar' alt="" />
+              <span className='name'>张三 </span>
+              <span className='message'>这是一条消息
+                很长很长很长很长
+                很长很长很长很长
+                很长很长很长很长
+                很长很长很长很长
+              </span>
+            </div>
+            <div className="ai-message">
+              <img src="" className='avatar' alt="" />
+              <span className='name'>ai </span>
+              <span className='message'>这是一条消息</span>
+            </div>
+          </li>
+        </ul>
+        <div className='record-button-wrapper'>
+          <div className="upload-file">
+            文件
+          </div>
+          <div className="send-voice" onClick={sendV}>发送语音</div>
+          {/* <div className="container">
+            <div className="circle">
+              <div className="c c1"></div>
+            </div>
+            <div className="circle">
+              <div className="c c2"></div>
+            </div>
+            <div className="circle ">
+              <div className="c c3"></div>
+            </div>
+            <div className="circle">
+              <div className="c c4"></div>
+            </div>
+            <div className="circle">
+              <div className="c c5"></div>
+            </div>
+          </div> */}
+          <div className="upload-img">
+            图片
+          </div>
+        </div>
+      </div>
+
       {/* <button onClick={onClick}>连接ws</button>
       <button onClick={onAddChannel}> 添加 频道</button>
       <button onClick={startRecording}> 开始录音 </button>
