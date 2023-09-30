@@ -20,7 +20,5 @@ export function useRecord() {
 
 
 
-
-
     return { record }
 }
