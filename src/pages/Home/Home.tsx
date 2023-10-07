@@ -119,7 +119,7 @@ function Home() {
     const touch = event.touches[0];
     setTouchEndPosition({ x: touch.clientX, y: touch.clientY });
   }
-  const onTouchEnd: TouchEventHandler<HTMLDivElement> = event => {
+  const onTouchEnd: TouchEventHandler<HTMLDivElement> = () => {
     if (touchEndPosition.y - touchStartPosition.y >= 50) {
       setHeaderHeight(60)
     }
@@ -127,7 +127,22 @@ function Home() {
       setHeaderHeight(0)
     }
   }
-  
+
+  const sendV = () => { }
+
+
+
+  const [animationClass, setAnimationClass] = useState<'nomal' | 'recording' | 'thinking'>('nomal')
+
+  const switchAnimation = () => {
+    const map:{[key in typeof animationClass]:typeof animationClass} = {
+      'nomal': 'recording',
+      'recording': 'thinking',
+      'thinking': 'nomal'
+    }
+    setAnimationClass(map[animationClass])
+  }
+
 
   return <div className="home"  >
     <header style={{ height: headerHeight + 'px' }}>
@@ -194,8 +209,9 @@ function Home() {
           <div className="upload-file">
             文件
           </div>
-          <div className="send-voice" onClick={sendV}>发送语音</div>
-          {/* <div className="container">
+          {/* <div className="send-voice" onClick={sendV} id="demoCanvas">发送语音</div> */}
+          {/* container */}
+          <div onClick={switchAnimation} className={`anima ${animationClass}`}>
             <div className="circle">
               <div className="c c1"></div>
             </div>
@@ -211,7 +227,7 @@ function Home() {
             <div className="circle">
               <div className="c c5"></div>
             </div>
-          </div> */}
+          </div>
           <div className="upload-img">
             图片
           </div>

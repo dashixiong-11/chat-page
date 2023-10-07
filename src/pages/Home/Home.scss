@@ -1,7 +1,7 @@
 @function random-range($min, $max) {
     $random: random();
     $range: $max - $min + 1;
-    @return $min +floor($random * $range);
+    @return $min (+floor($random * $range));
 }
 
 .home {
@@ -164,8 +164,9 @@
     $r: 50px;
     $R: $r * 1.7;
     $N: 5;
-    $rTO: $r/2 + 2;
-    $c: #3a3232;
+    $rTO: calc($r/2) + 2;
+    $c: #3f3b3b;
+    $gap: 8px;
 
     .record-button-wrapper {
         width: 100%;
@@ -181,6 +182,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .send-voice {
             width: 60px;
             height: 60px;
@@ -192,20 +194,94 @@
             font-size: 12px;
         }
 
-        .container {
+        .anima {
+            transition: all cubic-bezier(0.77, -0.14, 0.32, 1.14) 600ms;
+
+            .circle {
+                transition: all cubic-bezier(0.77, -0.14, 0.32, 1.14) 600ms;
+
+                .c {
+                    transition: all cubic-bezier(0.77, -0.14, 0.32, 1.14) 600ms;
+                }
+            }
+        }
+
+        .nomal {
+            width: $r;
+            height: $r;
+            border-radius: 50%;
+            position: relative;
+            transform-origin: center calc(($R/2) - 3px);
+            //   filter: url(#blob);
+
+            .circle {
+                position: absolute;
+                top: 0;
+                left: 50%;
+                margin-left: - calc($r / 2);
+                border-radius: 50%;
+                overflow: hidden;
+
+                .c {
+                    width: $r;
+                    height: $r;
+                    border-radius: 50%;
+                    // background-color: $c;
+                    background-color: rgba(0, 0, 0, 1);
+                }
+
+                @for $i from 1 through $N {
+                    &:nth-child(#{$i}) {
+                        transform: translate(0)
+                    }
+                }
+            }
+        }
+
+        .recording {
+            width: $R;
+            height: $R;
+            border-radius: 50%;
+            border: 1px solid #333;
+            position: relative;
+            //   filter: url(#blob);
+
+            .circle {
+                position: absolute;
+                left: - calc(2 * $r / 2 + $gap + $r / 2 / 2);
+                top: -200%;
+
+                .c {
+                    width: calc($r / 2);
+                    height: $r;
+                    border-radius: calc($r);
+                    // background-color: $c;
+                    background-color: rgba(0, 0, 0, 1);
+                }
+
+                @for $i from 1 through $N {
+                    &:nth-child(#{$i}) {
+                        transform: translateX(calc(($r / 2 + $gap) * $i ));
+                    }
+                }
+            }
+        }
+
+        .thinking {
             width: $R;
             height: $R;
             border-radius: 50%;
             position: relative;
-            transform-origin: center calc($R/2 - 3px);
+            transform-origin: center calc(($R/2) - 3px);
             animation: rotate 30s linear infinite;
             //   filter: url(#blob);
 
             .circle {
                 position: absolute;
                 left: 50%;
-                margin-left: -$r / 2;
-                transform-origin: center $R/2;
+                top: 0;
+                margin-left: - calc($r / 2);
+                transform-origin: center calc($R/2);
                 border-radius: 50%;
                 overflow: hidden;
 
@@ -214,12 +290,14 @@
                     width: $r;
                     height: $r;
                     border-radius: 50%;
-                    background-color: $c;
+                    // background-color: $c;
+                    background-color: rgba(0, 0, 0, 1);
+                    background-blend-mode: screen;
                 }
 
                 @for $i from 1 through $N {
                     &:nth-child(#{$i}) {
-                        transform: rotate(360deg/$N * ($i - 1));
+                        transform: rotate(calc((360deg) / $N) * ($i - 1));
                         $randomNumber: random-range(1, 100);
 
                         .c {
@@ -243,6 +321,7 @@
                 }
             }
         }
+
     }
 }
 
