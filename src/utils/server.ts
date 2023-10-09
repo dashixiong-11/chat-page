@@ -1,4 +1,10 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosResponse } from 'axios';
+
+interface ResponseType {
+  code: number;
+  data: any;
+  message: string;
+}
 
 const service = axios.create({
   headers: {
@@ -6,6 +12,7 @@ const service = axios.create({
   },
   baseURL: '',
 })
+
 
 service.interceptors.request.use(
   config => {
@@ -16,19 +23,17 @@ service.interceptors.request.use(
     return Promise.reject(error)
   })
 
-service.interceptors.response.use(response => {
-  const res = response.data
-  if (res.code === 0) {
-    return res
+service.interceptors.response.use((response) => {
+  if (response.data.code === 0) {
+    return Promise.resolve(response)
   } else {
-    return Promise.reject(res)
+    return Promise.reject(response.data)
   }
-
 }, error => {
   return Promise.reject(error)
 })
 
-function post(url: string, param = {}) {
+function post(url: string, param = {}): Promise<ResponseType> {
   return new Promise((resolve, reject) => {
     service({
       method: 'POST',
@@ -38,17 +43,16 @@ function post(url: string, param = {}) {
         Accept: 'application/json',
         'Content-Type': 'application/json;charset=UTF-8'
       }
-    }).then(res => resolve(res)).catch(error => reject(error))
+    }).then((response: AxiosResponse<ResponseType>) => resolve(response.data)).catch(error => reject(error))
   })
 
 }
 
 function get(url: string, param = {}) {
   return new Promise((resolve, reject) => {
-    service.get(url, param).then(res => {
-      resolve(res)
+    service.get(url, param).then((response: AxiosResponse<ResponseType>) => {
+      resolve(response.data)
     }).catch(error => reject(error))
-
   })
 }
 

@@ -3,7 +3,7 @@ import './Select.scss';
 
 
 type PropType = {
-  data: { text: string, value: string }[],
+  data: { text: string, value: string|number }[],
   onSelected?: ChangeEventHandler<HTMLSelectElement>
 }
 export const Select = ({ data, onSelected }: PropType) => {

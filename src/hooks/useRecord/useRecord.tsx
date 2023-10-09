@@ -1,5 +1,5 @@
 import { useState } from "react"
-import useProtal from "../useProtal/useProtal"
+import useProtal from "../usePortal/usePortal"
 import './useRecord.scss'
 
 

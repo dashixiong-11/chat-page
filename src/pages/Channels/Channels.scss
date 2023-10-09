@@ -1,0 +1,25 @@
+.channels {
+    min-height: 100vh;
+    padding: 0 20px;
+
+    .add-channel-nav {
+        padding: 10px;
+        text-align: end;
+
+        .add-btn {
+            color: $main-color;
+            border: 1px solid $main-color;
+            display: inline-flex;
+            align-items: center;
+            line-height: 42px;
+            padding: 0 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            img {
+                width: 2em;
+                height: 2em;
+            }
+        }
+    }
+
+}

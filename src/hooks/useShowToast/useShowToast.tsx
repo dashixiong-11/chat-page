@@ -1,5 +1,5 @@
 import { ReactElement, useRef } from 'react'
-import useProtal from '../useProtal/useProtal'
+import usePortal from '../usePortal/usePortal'
 
 
 import './useShowToast.scss'
@@ -22,17 +22,16 @@ const map = {
 }
 export const useShowToast = () => {
   const timerId = useRef<number | null>(null)
-  const {protal,remove} = useProtal()
+  const { portal, remove } = usePortal()
 
-  const showToast = ({ messages, icon, type = 'toast', duration }: P) => {
-    protal(map[type](messages, icon))
+  const showToast = ({ messages, icon = null, type = 'toast', duration }: P) => {
+    portal(map[type](messages, icon))
     if (!duration) return
     timerId.current = setTimeout(() => {
       timerId.current && clearTimeout(timerId.current)
       remove()
     }, duration)
   }
-
 
   return {
     showToast, removeToast: remove
