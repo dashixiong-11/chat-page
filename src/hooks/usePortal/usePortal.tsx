@@ -1,7 +1,7 @@
 import { ReactElement, useCallback, useRef, Profiler } from 'react';
+import { createPortal } from 'react-dom';
 import ReactDOM from 'react-dom/client';
 import './usePortal.scss';
-import { unmountComponentAtNode } from 'react-dom';
 
 function usePortal() {
   const node = useRef<HTMLElement | null>(null);
@@ -28,6 +28,16 @@ function usePortal() {
       console.log('Profiler callback:', id, phase, actualDuration);
     };
 
+
+    // root.render(createPortal(
+    //   <Profiler id="PortalContent" onRender={handleRender}>
+    //     <>
+    //       {mask || <div className='protal-mask' />}
+    //       <div className='protal-wrapper'>{child}</div>
+    //     </>
+    //   </Profiler>, node.current
+    // ))
+
     root.render(
       <Profiler id="PortalContent" onRender={handleRender}>
         <>
@@ -36,7 +46,7 @@ function usePortal() {
         </>
       </Profiler>
     );
-    document.body.appendChild(div);
+     document.body.appendChild(div);
   }
 
   const remove = () => {

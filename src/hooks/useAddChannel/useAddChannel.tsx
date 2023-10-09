@@ -56,7 +56,7 @@ export function useAddChannel(cb: () => void) {
 
   }, [cnChannelName])
   const onFormInputChange = (e: ChangeEvent<HTMLSelectElement> | ChangeEvent<HTMLInputElement>, type: keyof typeof m) => {
-    console.log('set');
+    console.log(type, e.target.value);
     setCnChannelName(e.target.value)
     m[type](e.target.value)
   }

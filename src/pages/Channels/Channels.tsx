@@ -1,16 +1,15 @@
 import { post } from '@/utils/server'
 import { useSocket } from '@/hooks/useSocket'
 import add_fill from '@/assets/icons/add_fill.svg'
-import { useEffect, TouchEventHandler, useState } from 'react'
+import { useEffect, useState, } from 'react'
 import { useShowToast } from '@/hooks/useShowToast/useShowToast'
 import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
+import { AddChannel } from '@/components/AddChannel/AddChannel'
 import './Channels.scss'
 
 
 function Channels() {
-  const { show } = useAddChannel(() => {
-    getChannel()
-  })
+  const [visible, setVisible] = useState(false)
   const { showToast } = useShowToast()
 
   const getChannel = async () => {
@@ -20,14 +19,23 @@ function Channels() {
 
 
   const onAddChannel = () => {
-    show()
+    //show()
+    showToast({
+      messages: '123',
+      duration: 1000
+    })
+    //  setVisible(true)
   }
 
   useEffect(() => {
     getChannel()
   }, [])
+  const onClose = () => {
+    setVisible(false)
+  }
 
   return <div className="channels">
+    <AddChannel visible={visible} onClose={onClose} />
     <div className="add-channel-nav">
       <div className='add-btn' onClick={onAddChannel}>
         <img src={add_fill} alt="" />
