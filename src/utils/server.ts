@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { showLoading,hideLoading } from './loading';
 
 interface ResponseType {
   code: number;
@@ -18,22 +19,26 @@ service.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token') || ''
     config.headers['Authorization'] = `Bearer ${token}`
+    showLoading()
     return config
   }, error => {
+    hideLoading()
     return Promise.reject(error)
   })
 
 service.interceptors.response.use((response) => {
+  hideLoading()
   if (response.data.code === 0) {
     return Promise.resolve(response)
   } else {
     return Promise.reject(response.data)
   }
 }, error => {
-  return Promise.reject(error)
+  hideLoading()
+  return Promise.reject(error.response.data)
 })
 
-function post(url: string, param = {}): Promise<ResponseType> {
+function post(url: string, param = {} ): Promise<ResponseType> {
   return new Promise((resolve, reject) => {
     service({
       method: 'POST',

@@ -3,6 +3,8 @@ import { set } from '@/utils/globalData';
 import { useThrottle } from './useThrottle';
 import { useEffect, useState, useRef } from 'react';
 import { useShowToast } from './useShowToast/useShowToast';
+import { showNotification,hideNotification } from '@/utils/loading';
+
 
 export const useSocket = () => {
   const { showToast } = useShowToast()
@@ -11,38 +13,45 @@ export const useSocket = () => {
   const reconnectAttempts = useRef(0);
   const [client, setClient] = useState<Centrifuge | null>(null)
 
-  // async function getToken() {
-  //   const res = await fetch('/centrifuge/connection_token');
-  //   if (!res.ok) {
-  //     if (res.status === 403) {
-  //       // Return special error to not proceed with token refreshes, client will be disconnected.
-  //       throw new UnauthorizedError('登录失败');
-  //     }
-  //     // Any other error thrown will result into token refresh re-attempts.
-  //     throw new Error(`Unexpected status code ${res.status}`);
-  //   }
-  //   const data = await res.json();
-  //   return data.token;
-  // }
   useEffect(() => {
-    const _client = new Centrifuge('ws://192.168.1.3/im/connection/websocket', { token: '', });
+    const connection_status = localStorage.getItem('connection_status') || 'file'
+    console.log(connection_status);
+    if (connection_status && connection_status !== 'file') { return }
+    const _client = new Centrifuge('ws://192.168.1.3/im/connection/websocket');
     _client.on('connecting', function (ctx) {
       console.log('连接中', ctx);
+      showNotification({
+        message:'连接中...'
+      })
+      localStorage.setItem('connection_status', 'padding')
     }).on('connected', function (ctx) {
       console.log('连接成功', ctx);
+      showNotification({
+        message:'连接成功',
+        type:'success',
+        duration:1500
+      })
+      localStorage.setItem('connection_status', 'success')
       reconnectAttempts.current = 0
     }).on('error', function (ctx) {
       console.log('连接失败', ctx);
+      showNotification({
+        message:'连接失败',
+        type:'error',
+      })
+      localStorage.setItem('connection_status', 'file')
       const { error } = ctx
-
       if (error.code === 109 || error.code === 12) {
-        // Taro.setStorageSync('token', '')
         disconnectWS()
       } else {
         tReconnect()
       }
     }).on('disconnected', function (ctx) {
-
+      console.log('关闭连接',ctx);
+      showNotification({
+        message:'连接失败',
+        type:'error',
+      })
     })
 
     setClient(_client)
@@ -53,19 +62,21 @@ export const useSocket = () => {
     console.log('Reconnect');
     if (reconnectAttempts.current < maxReconnectAttempts) {
       setTimeout(() => {
+      showNotification({
+        message:`重连中(${reconnectAttempts.current + 1}次)`,
+        type:'warning',
+      })
         console.log(`尝试重新连接 (尝试次数: ${reconnectAttempts.current + 1})`);
         client && client.connect()
         reconnectAttempts.current++;
       }, reconnectInterval);
     } else {
-      // Taro.showToast({
-      //   title: '达到最大重连尝试次数，无法重连',
-      //   icon: 'none',
-      //   success: () => {
-      //     disconnectWS()
-      //   }
-      // })
-      console.error('达到最大重连尝试次数，无法重连');
+      showNotification({
+        message:`达到最大重连尝试次数，无法重连`,
+        type:'error',
+        duration:1500
+      })
+      disconnectWS()
     }
   }, 3000)
 

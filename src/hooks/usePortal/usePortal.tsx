@@ -14,45 +14,29 @@ function usePortal() {
     const root = ReactDOM.createRoot(node.current);
     rootRef.current = root;  // 保存 root 到 rootRef
 
+    root.render(createPortal(
+        <>
+          {mask || <div className='protal-mask' />}
+          <div className='protal-wrapper'>{child}</div>
+        </>
+      , document.body
+    ))
 
-    const handleRender = (
-      id: string,
-      phase: 'mount' | 'update',
-      actualDuration: number,
-      baseDuration: number,
-      startTime: number,
-      commitTime: number,
-      interactions: Set<{ id: number, name: string, timestamp: number }>
-    ) => {
-      // Log or handle the profiled data as required.
-      console.log('Profiler callback:', id, phase, actualDuration);
-    };
-
-
-    // root.render(createPortal(
+    // root.render(
     //   <Profiler id="PortalContent" onRender={handleRender}>
     //     <>
     //       {mask || <div className='protal-mask' />}
     //       <div className='protal-wrapper'>{child}</div>
     //     </>
-    //   </Profiler>, node.current
-    // ))
-
-    root.render(
-      <Profiler id="PortalContent" onRender={handleRender}>
-        <>
-          {mask || <div className='protal-mask' />}
-          <div className='protal-wrapper'>{child}</div>
-        </>
-      </Profiler>
-    );
-     document.body.appendChild(div);
+    //   </Profiler>
+    // );
+   //  document.body.appendChild(div);
   }
 
   const remove = () => {
     if (node.current) {
       rootRef.current?.unmount();  // 使用 root 的 unmount 方法
-      document.body.removeChild(node.current);
+     // document.body.removeChild(node.current);
     }
   }
 

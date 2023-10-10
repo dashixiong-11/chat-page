@@ -1,6 +1,6 @@
 .channels {
     min-height: 100vh;
-    padding: 0 20px;
+    background: #f7f7f7;
 
     .add-channel-nav {
         padding: 10px;
@@ -15,11 +15,41 @@
             padding: 0 12px;
             border-radius: 10px;
             font-weight: bold;
+
             img {
                 width: 2em;
                 height: 2em;
             }
         }
+    }
+
+    .channel-list {
+        .item {
+            background: #fff;
+            display: flex;
+            padding: 0 18px;
+
+            .item-inner {
+                flex: 1;
+                padding: 16px 0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+
+                .icon-more {
+                    width: 1em;
+                    height: 1em;
+                }
+            }
+        }
+
+        .item:not(:last-child) {
+
+            .item-inner {
+                border-bottom: 1px solid $border-color;
+            }
+        }
+
     }
 
 }

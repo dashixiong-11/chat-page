@@ -8,7 +8,6 @@ import './Home.scss'
 
 type RecordTypeType = 'nomal' | 'recoeding' | 'thinking'
 function Home() {
-  const { show } = useAddChannel()
   const [recordType, setRecordType] = useState<RecordTypeType>('nomal')
   const { showToast } = useShowToast()
   //const { client } = useSocket()
@@ -54,10 +53,6 @@ function Home() {
     //   messages: 'message',
     // })
   }
-  const onAddChannel = () => {
-    show()
-  }
-
   const startRecording = () => {
     wx.startRecord({
       success: () => {
@@ -135,7 +130,7 @@ function Home() {
   const [animationClass, setAnimationClass] = useState<'nomal' | 'recording' | 'thinking'>('nomal')
 
   const switchAnimation = () => {
-    const map:{[key in typeof animationClass]:typeof animationClass} = {
+    const map: { [key in typeof animationClass]: typeof animationClass } = {
       'nomal': 'recording',
       'recording': 'thinking',
       'thinking': 'nomal'
