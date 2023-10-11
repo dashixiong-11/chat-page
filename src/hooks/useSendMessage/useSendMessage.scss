@@ -1,0 +1,53 @@
+    $r: 50px;
+    $R: $r * 1.7;
+    $N: 5;
+    $rTO: calc($r/2) + 2;
+    $c: #3f3b3b;
+    $gap: 8px;
+
+    .send-message-action-bar {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 120px;
+
+        .upload-file,
+        .upload-img {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            span {
+                font-size: 11px;
+                font-weight: bold;
+                color: #4d4d4d;
+            }
+        }
+
+        .send-voice {
+            width: 100px;
+            height: 100px;
+        }
+        .set-index {
+            position: relative;
+            z-index: 100;
+        }
+
+    }
+
+    .record-wrapper {
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(24, 24, 24, 0.8));
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        .record-wrapper-footer {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+    }

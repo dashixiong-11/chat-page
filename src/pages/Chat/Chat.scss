@@ -1,0 +1,343 @@
+@function random-range($min, $max) {
+    $random: random();
+    $range: $max - $min + 1;
+    @return $min (+floor($random * $range));
+}
+
+.chat {
+    position: relative;
+    min-height: 100vh;
+    background: linear-gradient(to bottom, #ffffff, #cccccc);
+    
+    .floating-ball {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: #ebebeb9c;
+        position: fixed;
+        border: 1px solid $border-color;
+        right: 10px;
+        top: 30vh;
+
+    }
+
+
+
+    .channel-list::-webkit-scrollbar {
+        display: none;
+    }
+
+    .channel-list {
+        width: 100%;
+        padding: 1em 0;
+        display: flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        white-space: nowrap;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+
+        &>li {
+            flex-shrink: 0;
+            margin-right: 1em;
+            width: 200px;
+            height: 50px;
+            display: inline-flex;
+            align-items: center;
+            padding: 0 1em;
+            border: 1px solid #333;
+            border-radius: 10px;
+        }
+    }
+
+    main {
+        height: 100vh;
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        .main-header {
+            padding-bottom: 1em;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 2px solid #333;
+            border-radius: 8px;
+
+            input {
+                padding: 4px 1em;
+                flex: 1;
+            }
+        }
+
+        .tips {
+            display: flex;
+            padding: 8px 0;
+
+            &>li {
+                background: #eaeaea;
+                display: inline-block;
+                padding: 2px 3px;
+                margin-right: 8px;
+            }
+        }
+
+        .search-res {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 350px;
+
+            .res-block {
+                border-radius: 8px;
+                background: #fff;
+                padding: 8px;
+                margin-bottom: 1em;
+            }
+
+
+        }
+
+        .message-action {
+            padding: 1em;
+            position: fixed;
+            height: 350px;
+            width: 100%;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(247, 247, 247, 0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(8px);
+
+            .messages {
+                height: 230px;
+                overflow: hidden;
+
+                li {
+                    margin-bottom: 1em;
+
+                    .avatar {
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        background-color: #9b9b9b;
+                        position: relative;
+                        display: inline-block;
+                        transform: translateY(5px);
+                        overflow: hidden;
+
+                    }
+
+                    .name {
+                        color: #3478f5;
+                        margin: 0 10px;
+                    }
+
+                    .message {
+                        line-height: 10px;
+                    }
+
+                    .user-message,
+                    .ai-message {
+                        margin-bottom: 1em;
+                    }
+
+                    .ai-message {}
+
+                }
+
+                .active {
+                    .message {
+                        font-weight: bold;
+                        font-size: 15px;
+                    }
+
+                }
+            }
+
+        }
+
+
+    }
+
+
+    $r: 50px;
+    $R: $r * 1.7;
+    $N: 5;
+    $rTO: calc($r/2) + 2;
+    $c: #3f3b3b;
+    $gap: 8px;
+
+    .record-button-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 120px;
+
+        .upload-file,
+        .upload-img {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            span {
+                font-size: 11px;
+                font-weight: bold;
+                color: #4d4d4d;
+            }
+        }
+
+        .send-voice {
+            width: 100px;
+            height: 100px;
+        }
+
+        .anima {
+            transition: all cubic-bezier(0.77, -0.14, 0.32, 1.14) 600ms;
+
+            .circle {
+                transition: all cubic-bezier(0.77, -0.14, 0.32, 1.14) 600ms;
+
+                .c {
+                    transition: all cubic-bezier(0.77, -0.14, 0.32, 1.14) 600ms;
+                }
+            }
+        }
+
+        .nomal {
+            width: $r;
+            height: $r;
+            border-radius: 50%;
+            position: relative;
+            transform-origin: center calc(($R/2) - 3px);
+            //   filter: url(#blob);
+
+            .circle {
+                position: absolute;
+                top: 0;
+                left: 50%;
+                margin-left: - calc($r / 2);
+                border-radius: 50%;
+                overflow: hidden;
+
+                .c {
+                    width: $r;
+                    height: $r;
+                    border-radius: 50%;
+                    // background-color: $c;
+                    background-color: rgba(0, 0, 0, 1);
+                }
+
+                @for $i from 1 through $N {
+                    &:nth-child(#{$i}) {
+                        transform: translate(0)
+                    }
+                }
+            }
+        }
+
+        .recording {
+            width: $R;
+            height: $R;
+            border-radius: 50%;
+            border: 1px solid #333;
+            position: relative;
+            //   filter: url(#blob);
+
+            .circle {
+                position: absolute;
+                left: - calc(2 * $r / 2 + $gap + $r / 2 / 2);
+                top: -200%;
+
+                .c {
+                    width: calc($r / 2);
+                    height: $r;
+                    border-radius: calc($r);
+                    // background-color: $c;
+                    background-color: rgba(0, 0, 0, 1);
+                }
+
+                @for $i from 1 through $N {
+                    &:nth-child(#{$i}) {
+                        transform: translateX(calc(($r / 2 + $gap) * $i ));
+                    }
+                }
+            }
+        }
+
+        .thinking {
+            width: $R;
+            height: $R;
+            border-radius: 50%;
+            position: relative;
+            transform-origin: center calc(($R/2) - 3px);
+            animation: rotate 30s linear infinite;
+            //   filter: url(#blob);
+
+            .circle {
+                position: absolute;
+                left: 50%;
+                top: 0;
+                margin-left: - calc($r / 2);
+                transform-origin: center calc($R/2);
+                border-radius: 50%;
+                overflow: hidden;
+
+                .c {
+                    position: relative;
+                    width: $r;
+                    height: $r;
+                    border-radius: 50%;
+                    // background-color: $c;
+                    background-color: rgba(0, 0, 0, 1);
+                    background-blend-mode: screen;
+                }
+
+                @for $i from 1 through $N {
+                    &:nth-child(#{$i}) {
+                        transform: rotate(calc((360deg) / $N) * ($i - 1));
+                        $randomNumber: random-range(1, 100);
+
+                        .c {
+                            transform-origin: center $rTO;
+                            animation: rotate 3s linear infinite;
+                        }
+
+                        @if $i % 2==0 {
+                            .c {
+                                animation-delay: 0s;
+                            }
+                        }
+
+                        @else {
+                            .c {
+                                animation-delay: 1s;
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

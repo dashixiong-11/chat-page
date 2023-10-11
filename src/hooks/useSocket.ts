@@ -3,7 +3,7 @@ import { set } from '@/utils/globalData';
 import { useThrottle } from './useThrottle';
 import { useEffect, useState, useRef } from 'react';
 import { useShowToast } from './useShowToast/useShowToast';
-import { showNotification,hideNotification } from '@/utils/loading';
+import { showNotification, hideNotification } from '@/utils/loading';
 
 
 export const useSocket = () => {
@@ -14,6 +14,7 @@ export const useSocket = () => {
   const [client, setClient] = useState<Centrifuge | null>(null)
 
   useEffect(() => {
+    return
     const connection_status = localStorage.getItem('connection_status') || 'file'
     console.log(connection_status);
     if (connection_status && connection_status !== 'file') { return }
@@ -21,37 +22,40 @@ export const useSocket = () => {
     _client.on('connecting', function (ctx) {
       console.log('连接中', ctx);
       showNotification({
-        message:'连接中...'
+        message: '连接中...'
       })
       localStorage.setItem('connection_status', 'padding')
     }).on('connected', function (ctx) {
       console.log('连接成功', ctx);
       showNotification({
-        message:'连接成功',
-        type:'success',
-        duration:1500
+        message: '连接成功',
+        type: 'success',
+        duration: 1500
       })
       localStorage.setItem('connection_status', 'success')
       reconnectAttempts.current = 0
     }).on('error', function (ctx) {
       console.log('连接失败', ctx);
       showNotification({
-        message:'连接失败',
-        type:'error',
+        message: '连接失败',
+        type: 'error',
+        duration: 1500,
+        success: () => {
+          const { error } = ctx
+          if (error.code === 109 || error.code === 12) {
+            disconnectWS()
+          } else {
+            tReconnect()
+          }
+        }
       })
       localStorage.setItem('connection_status', 'file')
-      const { error } = ctx
-      if (error.code === 109 || error.code === 12) {
-        disconnectWS()
-      } else {
-        tReconnect()
-      }
     }).on('disconnected', function (ctx) {
-      console.log('关闭连接',ctx);
-      showNotification({
-        message:'连接失败',
-        type:'error',
-      })
+      console.log('关闭连接', ctx);
+      // showNotification({
+      //   message: '连接失败',
+      //   type: 'error',
+      // })
     })
 
     setClient(_client)
@@ -59,24 +63,26 @@ export const useSocket = () => {
   }, [])
 
   const tReconnect = useThrottle(() => {
-    console.log('Reconnect');
     if (reconnectAttempts.current < maxReconnectAttempts) {
+      console.log('Reconnect');
       setTimeout(() => {
-      showNotification({
-        message:`重连中(${reconnectAttempts.current + 1}次)`,
-        type:'warning',
-      })
+        showNotification({
+          message: `重连中(${reconnectAttempts.current + 1}次)`,
+          type: 'warning',
+        })
         console.log(`尝试重新连接 (尝试次数: ${reconnectAttempts.current + 1})`);
         client && client.connect()
         reconnectAttempts.current++;
       }, reconnectInterval);
     } else {
       showNotification({
-        message:`达到最大重连尝试次数，无法重连`,
-        type:'error',
-        duration:1500
+        message: `达到最大重连尝试次数，无法重连`,
+        type: 'error',
+        duration: 1500,
+        success: () => {
+          disconnectWS()
+        }
       })
-      disconnectWS()
     }
   }, 3000)
 

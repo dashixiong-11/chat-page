@@ -52,7 +52,10 @@ function hideToast() {
     hide()
 }
 
-function showNotification({ message, duration, type = 'info' }: { message: string, duration?: number, type?: 'info' | 'success' | 'warning' | 'error' }) {
+function showNotification({ message, duration, type = 'info', success }: {
+    message: string, duration?: number, type?: 'info' | 'success' | 'warning' | 'error',
+    success?: () => void
+}) {
     const findDiv = document.querySelector('#popup-wrapper')
     if (findDiv) { hide() }
     const div = document.createElement('div')
@@ -67,13 +70,13 @@ function showNotification({ message, duration, type = 'info' }: { message: strin
         </>
 
     )
-    
-    document.body.appendChild(div);
 
+    document.body.appendChild(div);
     clearTimeout(id)
     if (duration) {
         id = setTimeout(() => {
             hideNotification()
+            success && success()
             clearTimeout(id)
         }, duration)
     }

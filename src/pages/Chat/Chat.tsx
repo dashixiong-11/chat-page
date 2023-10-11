@@ -2,13 +2,25 @@ import { post } from '@/utils/server'
 import { Centrifuge } from 'centrifuge';
 import { useEffect, TouchEventHandler, useState, ChangeEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { get as getGlobalData, set as setGlobalData } from "@/utils/globalData";
+import { get as getGlobalData } from "@/utils/globalData";
 import { useMessagesData } from '@/hooks/useMessagesData';
+import { useNavigate } from 'react-router-dom';
+import pic from '@/assets/icons/pic.svg'
+import check from '@/assets/icons/check.svg'
+import folder from '@/assets/icons/folder.svg'
+import pause from '@/assets/icons/pause.svg'
+import play from '@/assets/icons/play.svg'
+import history from '@/assets/icons/history.svg'
+
+import Markdown from 'react-markdown'
 import './Chat.scss'
+import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 
 
 type RecordTypeType = 'nomal' | 'recoeding' | 'thinking'
 function Chat() {
+  const {view} = useSendMessage()
+  const navigate = useNavigate()
   const [params] = useSearchParams()
   const [recordType, setRecordType] = useState<RecordTypeType>('nomal')
   const [searchValue, setSearchValue] = useState('')
@@ -22,37 +34,11 @@ function Chat() {
   }, [newMessage])
 
 
-  useEffect(() => {
-    const { appId, timestamp, nonceStr, signature } = {
-      appId: "wxf1193f6efa3350b1",
-      timestamp: '3213213213',
-      nonceStr: 'ddssxx',
-      signature: '579b1a7a460f63964f65ef6673e8b7ea15b63058'
-    }
-
-    wx.config({
-      debug: false,
-      appId: appId,
-      timestamp: timestamp,
-      nonceStr: nonceStr,
-      signature: signature,
-      jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage', 'downloadImage', 'uploadVoice', 'translateVoice']
-    });
-    wx.error(function (err: any) {
-      console.log('error----', err);
-    })
-    // post('/miniprogram/api/jssdk', {
-    //   url: location.href.split('#')[0]
-    // }).then((res: any) => {
-    //   console.log(res);
-    // }).catch(error => console.log(error));
-  }, [])
 
 
   const sendMessage = () => {
-    
     const channelName = params.get('channel_name') || ''
-    console.log('send message',channelName);
+    console.log('send message', channelName);
     centrifuge?.publish(channelName, [{
       data_type: 'text',
       value: '写一首古诗'
@@ -64,32 +50,6 @@ function Chat() {
 
   }
 
-  const startRecording = () => {
-    wx.startRecord({
-      success: () => {
-        console.log('开始录音');
-      },
-      cancel: () => {
-        console.log('拒绝授权');
-      }
-    })
-
-  }
-  const stopRecording = () => {
-    wx.stopRecord({
-      success: (res) => {
-        console.log(res.localId);
-        //uploadLocalVoice(res.localId)
-        wx.translateVoice({
-          localId: res.localId,
-          isShowProgressTips: 1,
-          success: function (res: any) {
-            alert(res.translateResult);
-          }
-        })
-      }
-    })
-  }
 
   const uploadLocalImage = (localId: string | number) => {
     console.log('uploadLocalImage', localId);
@@ -113,27 +73,6 @@ function Chat() {
     })
   }
 
-  const [headerHeight, setHeaderHeight] = useState(0)
-  const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 })
-  const [touchEndPosition, setTouchEndPosition] = useState({ x: 0, y: 0 })
-  const onTouchStart: TouchEventHandler<HTMLDivElement> = event => {
-    setTouchEndPosition({ x: 0, y: 0 })
-    const touch = event.touches[0];
-    setTouchStartPosition({ x: touch.clientX, y: touch.clientY });
-  }
-  const onTouchMove: TouchEventHandler<HTMLDivElement> = event => {
-    const touch = event.touches[0];
-    setTouchEndPosition({ x: touch.clientX, y: touch.clientY });
-  }
-  const onTouchEnd: TouchEventHandler<HTMLDivElement> = () => {
-    if (touchEndPosition.y - touchStartPosition.y >= 50) {
-      setHeaderHeight(60)
-    }
-    if (touchStartPosition.y - touchEndPosition.y > 50) {
-      setHeaderHeight(0)
-    }
-  }
-
   const sendV = () => { }
 
 
@@ -141,19 +80,18 @@ function Chat() {
     setSearchValue(e.target.value)
   }
 
+  const markdown = '# Hi, *Pluto*!'
 
-  return <div className="home"  >
-    <header style={{ height: headerHeight + 'px' }}>
-      <ul className="channel-list">
-        <li> 频道1</li>
-        <li> 频道2</li>
-        <li> 频道3</li>
-        <li> 频道3</li>
-        <li> 频道3</li>
-        <li> 频道3</li>
-      </ul>
-    </header>
-    <main style={{ height: `calc(100vh - ${headerHeight}px)` }} onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+  const to = (path: string) => {
+    navigate(path)
+  }
+
+
+  return <div className="chat"  >
+    <div className="floating-ball" onClick={() => to('/history')}>
+      <img src={history} alt="" />
+    </div>
+    <main style={{ height: '100vh' }} >
       <div className="main-header">
         <div className="search">
           <input type="text" className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
@@ -161,7 +99,9 @@ function Chat() {
         </div>
       </div>
       <div className="search-res">
-        <div className='res-block' style={{ height: '200px' }}> message 1</div>
+        <div className='res-block' style={{ height: '200px' }}>
+          <Markdown>{markdown}</Markdown>
+        </div>
         <div className='res-block' style={{ height: '200px' }}> message 2</div>
         <div className='res-block' style={{ height: '200px' }}> message 3</div>
         <div className='res-block' style={{ height: '200px' }}> message 4</div>
@@ -199,15 +139,7 @@ function Chat() {
             </div>
           </li>
         </ul>
-        <div className='record-button-wrapper'>
-          <div className="upload-file">
-            文件
-          </div>
-          <div className="send-voice" onClick={sendV} id="demoCanvas">发送语音</div>
-          <div className="upload-img">
-            图片
-          </div>
-        </div>
+        {view}
       </div>
 
     </main>

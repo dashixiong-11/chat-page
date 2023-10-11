@@ -27,6 +27,11 @@
   <script type="module" src="/src/main.tsx"></script>
   <script src="https://unpkg.com/vconsole@latest/dist/vconsole.min.js"></script>
   <script>
+    if (!Object.hasOwn) {
+      Object.hasOwn = (obj, key) => {
+        return Object.prototype.hasOwnProperty.call(obj, key);
+      };
+    }
     //var vConsole = new window.VConsole();
   </script>
 </body>

@@ -17,6 +17,10 @@ export function useRecord() {
             on:()=>{}
         }
     })
+    
+    const view = {
+
+    }
 
 
 
