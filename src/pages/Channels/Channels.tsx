@@ -1,9 +1,8 @@
 import { post } from '@/utils/server'
 import { useNavigate } from 'react-router-dom';
-import { useSocket } from '@/hooks/useSocket'
 import add_fill from '@/assets/icons/add_fill.svg'
 import more from '@/assets/icons/more.svg'
-import { useCallback, useEffect, useState, } from 'react'
+import {  useEffect, useState, } from 'react'
 import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
 import './Channels.scss'
 
@@ -11,8 +10,6 @@ type ListItem = { cn_name: string, name: string, chan_info: { type: string, work
 type ListType = ListItem[]
 function Channels() {
   const navigate = useNavigate()
-  const token = localStorage.getItem('token')
-  const { client } = useSocket()
   const [list, setList] = useState<ListType>([])
   const getChannel = async () => {
     const res = await post('/miniprogram/api/channels').catch(err => { throw new Error(err) })
@@ -32,14 +29,6 @@ function Channels() {
 
     getChannel()
   }, [])
-
- useEffect(() => {
-    
-    if (token && client) {
-      client?.setToken(token)
-      client?.connect()
-    }
-  },[token,client])
 
 
 

@@ -1,28 +1,19 @@
 import { post } from '@/utils/server'
 import { Centrifuge } from 'centrifuge';
-import { useEffect, TouchEventHandler, useState, ChangeEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useEffect,  useState, ChangeEvent } from 'react'
+import { useSearchParams,useNavigate } from 'react-router-dom'
 import { get as getGlobalData } from "@/utils/globalData";
 import { useMessagesData } from '@/hooks/useMessagesData';
-import { useNavigate } from 'react-router-dom';
-import pic from '@/assets/icons/pic.svg'
-import check from '@/assets/icons/check.svg'
-import folder from '@/assets/icons/folder.svg'
-import pause from '@/assets/icons/pause.svg'
-import play from '@/assets/icons/play.svg'
+import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 import history from '@/assets/icons/history.svg'
-
 import Markdown from 'react-markdown'
 import './Chat.scss'
-import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 
 
-type RecordTypeType = 'nomal' | 'recoeding' | 'thinking'
 function Chat() {
-  const {view} = useSendMessage()
+  const { view, message } = useSendMessage()
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const [recordType, setRecordType] = useState<RecordTypeType>('nomal')
   const [searchValue, setSearchValue] = useState('')
   const [centrifuge] = useState<Centrifuge | undefined>(() => {
     return getGlobalData('client')
@@ -36,19 +27,22 @@ function Chat() {
 
 
 
-  const sendMessage = () => {
+  const sendMessage = (message: string) => {
     const channelName = params.get('channel_name') || ''
     console.log('send message', channelName);
     centrifuge?.publish(channelName, [{
       data_type: 'text',
-      value: '写一首古诗'
+      value: message
     }]).then(function (res) {
       console.log('发送成功');
     }, function (err) {
       console.log('发送失败', err);
     })
-
   }
+  useEffect(() => {
+    if (!message) return
+    sendMessage(message)
+  }, [message])
 
 
   const uploadLocalImage = (localId: string | number) => {
@@ -73,8 +67,6 @@ function Chat() {
     })
   }
 
-  const sendV = () => { }
-
 
   const onInput = (e: ChangeEvent<HTMLInputElement>,) => {
     setSearchValue(e.target.value)
@@ -95,7 +87,7 @@ function Chat() {
       <div className="main-header">
         <div className="search">
           <input type="text" className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
-          <span onClick={sendMessage}>搜索</span>
+          <span onClick={() => sendMessage(searchValue)}>搜索</span>
         </div>
       </div>
       <div className="search-res">

@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import Home from './pages/Home/Home';
+import Index from './pages/Index/Index';
 import Chat from './pages/Chat/Chat';
 import Channels from './pages/Channels/Channels';
 import History from './pages/History/History';
@@ -12,8 +12,8 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Channels />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Index />} />
+        <Route path="/index" element={<Index />} />
         <Route path="/channels" element={<Channels />} />
         <Route path="/history" element={<History />} />
         <Route path="/chat" element={<Chat />} />

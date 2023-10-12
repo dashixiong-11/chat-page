@@ -4,7 +4,7 @@ declare var wx: wx;
 interface wx {
   miniProgram: any,
   startRecord: any,
-  stopRecord: (data: { success: (res:{localId:string}) => void }) => void,
+  stopRecord: (data: { success: (res: { localId: string }) => void }) => void,
   chooseImage: ({ }: any) => void,
   checkJsApi: any,
   config: any,
@@ -12,6 +12,7 @@ interface wx {
   uploadImage: any,
   uploadVoice: any,
   downloadImage: any,
-  translateVoice:any
+  translateVoice: any,
+  onVoiceRecordEnd: any
 
 }
