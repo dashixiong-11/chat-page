@@ -5,12 +5,21 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@types/react-window':
+    specifier: ^1.8.6
+    version: 1.8.6
+  '@types/react-window-infinite-loader':
+    specifier: ^1.0.7
+    version: 1.0.7
   axios:
     specifier: ^1.5.0
     version: 1.5.0
   centrifuge:
     specifier: ^5.0.0
     version: 5.0.0
+  install:
+    specifier: ^0.13.0
+    version: 0.13.0
   lottie-web:
     specifier: ^5.12.2
     version: 5.12.2
@@ -32,6 +41,15 @@ dependencies:
   react-router-dom:
     specifier: '6'
     version: 6.16.0(react-dom@18.2.0)(react@18.2.0)
+  react-virtualized-auto-sizer:
+    specifier: ^1.0.20
+    version: 1.0.20(react-dom@18.2.0)(react@18.2.0)
+  react-window:
+    specifier: ^1.8.9
+    version: 1.8.9(react-dom@18.2.0)(react@18.2.0)
+  react-window-infinite-loader:
+    specifier: ^1.0.9
+    version: 1.0.9(react-dom@18.2.0)(react@18.2.0)
 
 devDependencies:
   '@types/react':
@@ -265,6 +283,13 @@ packages:
       '@babel/core': 7.22.20
       '@babel/helper-plugin-utils': 7.22.5
     dev: true
+
+  /@babel/runtime@7.23.2:
+    resolution: {integrity: sha512-mM8eg4yl5D6i3lu2QKPuPH4FArvJ8KhTofbE7jwMUv9KX5mBvwPAqnV3MlyBNqdp9RyRKP6Yck8TrfYrPvX3bg==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.14.0
+    dev: false
 
   /@babel/template@7.22.15:
     resolution: {integrity: sha512-QPErUVm4uyJa60rkI73qneDacvdvzxshT3kksGqlGWYdOTIUOwJ7RDUL8sGqslY1uXWSL6xMFKEXDS3ox2uF0w==}
@@ -718,6 +743,19 @@ packages:
     dependencies:
       '@types/react': 18.2.15
     dev: true
+
+  /@types/react-window-infinite-loader@1.0.7:
+    resolution: {integrity: sha512-+CG6szhzP7akjbZ5v85yyZqS78XsJ/VVjccNFPR0bGFQf8jzL238aoNJYBP7qZDbcROIx6tiFJcT9PHzw8LAVg==}
+    dependencies:
+      '@types/react': 18.2.15
+      '@types/react-window': 1.8.6
+    dev: false
+
+  /@types/react-window@1.8.6:
+    resolution: {integrity: sha512-AVJr3A5rIO9dQQu5TwTN0lP2c1RtuqyyZGCt7PGP8e5gUpn1PuQRMJb/u3UpdbwTHh4wbEi33UMW5NI0IXt1Mg==}
+    dependencies:
+      '@types/react': 18.2.15
+    dev: false
 
   /@types/react@18.2.15:
     resolution: {integrity: sha512-oEjE7TQt1fFTFSbf8kkNuc798ahTUzn3Le67/PWjE8MAfYAD/qB7O8hSTcromLFqHCt9bcdOg5GXMokzTjJ5SA==}
@@ -1726,6 +1764,11 @@ packages:
     resolution: {integrity: sha512-7NXolsK4CAS5+xvdj5OMMbI962hU/wvwoxk+LWR9Ek9bVtyuuYScDN6eS0rUm6TxApFpw7CX1o4uJzcd4AyD3Q==}
     dev: false
 
+  /install@0.13.0:
+    resolution: {integrity: sha512-zDml/jzr2PKU9I8J/xyZBQn8rPCAY//UOYNmR01XwNwyfhEWObo2SWfSl1+0tm1u6PhxLwDnfsT/6jB7OUxqFA==}
+    engines: {node: '>= 0.10'}
+    dev: false
+
   /is-binary-path@2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
     engines: {node: '>=8'}
@@ -1905,6 +1948,10 @@ packages:
     resolution: {integrity: sha512-0H44vDimn51F0YwvxSJSm0eCDOJTRlmN0R1yBh4HLj9wiV1Dn0QoXGbvFAWj2hSItVTlCmBF1hqKlIyUBVFLPg==}
     dependencies:
       '@types/mdast': 4.0.1
+    dev: false
+
+  /memoize-one@5.2.1:
+    resolution: {integrity: sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==}
     dev: false
 
   /merge-stream@2.0.0:
@@ -2334,6 +2381,40 @@ packages:
       react: 18.2.0
     dev: false
 
+  /react-virtualized-auto-sizer@1.0.20(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-OdIyHwj4S4wyhbKHOKM1wLSj/UDXm839Z3Cvfg2a9j+He6yDa6i5p0qQvEiCnyQlGO/HyfSnigQwuxvYalaAXA==}
+    peerDependencies:
+      react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0-rc
+      react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0-rc
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /react-window-infinite-loader@1.0.9(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-5Hg89IdU4Vrp0RT8kZYKeTIxWZYhNkVXeI1HbKo01Vm/Z7qztDvXljwx16sMzsa9yapRJQW3ODZfMUw38SOWHw==}
+    engines: {node: '>8.0.0'}
+    peerDependencies:
+      react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+      react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
+  /react-window@1.8.9(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-+Eqx/fj1Aa5WnhRfj9dJg4VYATGwIUP2ItwItiJ6zboKWA6EX3lYDAXfGF2hyNqplEprhbtjbipiADEcwQ823Q==}
+    engines: {node: '>8.0.0'}
+    peerDependencies:
+      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@babel/runtime': 7.23.2
+      memoize-one: 5.2.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
   /react@18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
     engines: {node: '>=0.10.0'}
@@ -2347,6 +2428,10 @@ packages:
     dependencies:
       picomatch: 2.3.1
     dev: true
+
+  /regenerator-runtime@0.14.0:
+    resolution: {integrity: sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==}
+    dev: false
 
   /remark-parse@11.0.0:
     resolution: {integrity: sha512-FCxlKLNGknS5ba/1lmpYijMUzX2esxW5xQqjWxw2eHFfS2MSdaHVINFmhjo+qN1WhZhNimq0dZATN9pH0IDrpA==}

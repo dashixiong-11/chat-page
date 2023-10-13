@@ -2,17 +2,23 @@ import { Centrifuge, StreamPosition, Subscription } from 'centrifuge';
 import { useSub } from './useSub';
 import { useEffect, useState } from 'react';
 
-export function useMessagesData({ channelName }: { channelName?: string }) {
+type NewMessageType = {
+    m?: { value: string, data_type: string }[]
+    u?: {
+        avatar: string, id: string, name: string, offset: number | undefined
+    }
+}
+function useMessagesData({ channelName }: { channelName?: string }) {
     const { sub } = useSub({ channelName })
     const [streamPosition, setStreamPosition] = useState<StreamPosition | null>(null)
-    const [newMessage, setNewMessage] = useState('')
+    const [newMessage, setNewMessage] = useState<NewMessageType>({})
 
     useEffect(() => {
         if (!channelName || !sub) return
-        console.log('监听');
         sub && sub.on('publication', async function (ctx) {
             console.log('新消息', ctx);
-            //streamPosition.current = { offset: ctx.offset, epoch: streamPosition.current.epoch }
+            const { data, info, tags } = ctx
+            setNewMessage({ m: data, u: { id: info?.user || '', avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined } })
         })
     }, [sub, channelName])
 
@@ -21,3 +27,6 @@ export function useMessagesData({ channelName }: { channelName?: string }) {
     }
 
 }
+
+export { useMessagesData }
+export type { NewMessageType }

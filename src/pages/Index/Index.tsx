@@ -8,19 +8,18 @@ import './Index.scss'
 function Index() {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const tk = params.get('token') || ''
-  const [token] = useState<string | null>(() => {
-    return tk || localStorage.getItem('token')
-  })
+  const token = params.get('token') || localStorage.getItem('token') || ''
+  const id = params.get('id') || localStorage.getItem('id') || ''
+  localStorage.setItem('token', token)
+  localStorage.setItem('id', id)
   const { client } = useSocket()
-
   useEffect(() => {
     if (token && client) {
       client.setToken(token)
       client.connect()
-      navigate('/channel')
+      navigate('/channels')
     }
-  }, [token, client])
+  }, [client])
 
 
   return <div className="home">

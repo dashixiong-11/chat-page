@@ -14,7 +14,6 @@ export const useSocket = () => {
   const [client, setClient] = useState<Centrifuge | null>(null)
 
   useEffect(() => {
-    return
     const connection_status = localStorage.getItem('connection_status') || 'file'
     console.log(connection_status);
     if (connection_status && connection_status !== 'file') { return }

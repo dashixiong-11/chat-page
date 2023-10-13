@@ -8,7 +8,7 @@
     position: relative;
     min-height: 100vh;
     background: linear-gradient(to bottom, #ffffff, #cccccc);
-    
+
     .floating-ball {
         display: flex;
         align-items: center;
@@ -100,6 +100,10 @@
                 background: #fff;
                 padding: 8px;
                 margin-bottom: 1em;
+
+                .voice-btn {
+                    text-align: end;
+                }
             }
 
 
@@ -108,7 +112,6 @@
         .message-action {
             padding: 1em;
             position: fixed;
-            height: 350px;
             width: 100%;
             left: 0;
             right: 0;
@@ -116,10 +119,11 @@
             background-color: rgba(247, 247, 247, 0.4);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(8px);
+            //overflow: hidden;
 
             .messages {
-                height: 230px;
                 overflow: hidden;
+                transition: all 300ms;
 
                 li {
                     margin-bottom: 1em;
@@ -189,6 +193,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+
             span {
                 font-size: 11px;
                 font-weight: bold;
