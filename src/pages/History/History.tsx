@@ -1,75 +1,108 @@
-import { useEffect, useState, useRef } from "react"
-import { FixedSizeList as List } from 'react-window';
-import InfiniteLoader from 'react-window-infinite-loader';
+import { useEffect, useState, useRef, UIEventHandler } from "react"
 import './History.scss'
 
 
 
 function History() {
     const [list, setList] = useState<any[]>([])
-    const listRef = useRef<any>(null)
-    const isItemLoaded = (index: any) => {
-        return !!list[index]
-    }; // 根据你的数据结构调整
-    const loadMoreItems = (startIndex: any, stopIndex: any) => {
+    const divend = useRef<HTMLDivElement>(null)
+    const listDivRef = useRef<HTMLDivElement>(null)
+    const [scrollOffset, setScrollOffset] = useState(0);
+    const jsControl = useRef(false)
+
+    const loadMoreItems = () => {
+        console.log('load more');
+        loadMore.current = true
+
         return new Promise<void>((resolve) => {
             setTimeout(() => {
-                const newData = Array.from({ length: 10 }, (_, i) => `Item ${list.length + i}`);
-                setList(prevItems => [...prevItems, ...newData]);
+                const newData = Array.from({ length: 10 }, (_, i) => {
+                    const x = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
+                    return {
+                        height: x
+                    }
+                });
+                setList(prevItems => [...newData, ...prevItems]);
+                loadMore.current = false
                 resolve();
             }, 1000);
         });
 
-        // 从服务器或其他来源加载历史消息
     };
 
     useEffect(() => {
         const l = []
-        for (let i = 0; i <= 50; i++) {
-            l.push(i)
+        for (let i = 20; i >= 0; i--) {
+            const x = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
+            l.push({
+                height: x
+            })
         }
-
         setList(l)
     }, [])
+
     useEffect(() => {
-        if (!listRef.current) return
-        listRef.current?.scrollToItem(list.length, "end");
-    }, [listRef.current])
+        console.log(divend.current);
+        if (!divend.current) return
+        setTimeout(() => {
+            scrollDown()
+        }, 100)
+    }, [divend.current])
 
-    return <div className="history">  <InfiniteLoader
-        isItemLoaded={isItemLoaded}
-        itemCount={list.length}
-        loadMoreItems={loadMoreItems}
-        threshold={2}
+    const [listDivWrapperHeight, setListDivWrapperHeight] = useState(0)
 
-    >
-        {({ onItemsRendered }: any) => (
-            <List
-                ref={listRef as React.RefObject<List>}
-                width='100%'
-                height={window.innerHeight}
-                className="list-v"
-                itemCount={list.length}
-                itemSize={50}
-                onItemsRendered={onItemsRendered}
-                style={{ overflowAnchor: "none" }} // 为了避免滚动跳跃
-                layout="vertical"
-                direction="ltr"
-                innerElementType="div"
-            >
-                {Row}
-            </List>
-        )}
-    </InfiniteLoader>
-    </div>
-    function Row(props: any) {
-        const { index, style } = props;
-        return (
-            <div style={style} className="item">
-                {list[index] ? list[index] : 'loading'}
-            </div>
-        );
+    useEffect(() => {
+        if (listDivRef.current && list.length > 0) {
+            console.log(listDivRef.current.clientHeight);
+            setListDivWrapperHeight(listDivRef.current.clientHeight)
+        }
+    }, [list, listDivRef.current])
+
+    const scrollDown = () => {
+        jsControl.current = true
+        divend.current && divend.current.scrollIntoView({
+            block: "end"    // 上边框与视窗顶部平齐
+        });
     }
+
+
+
+    const loadMore = useRef(false)
+    const t = useRef(0)
+    const onPageScroll: UIEventHandler<HTMLDivElement> = (event) => {
+        const { scrollTop } = event.currentTarget;
+        if (jsControl.current) {
+            console.log('js 触发');
+
+        } else {
+
+            if (scrollTop <= 50 && !loadMore.current) {
+                loadMoreItems()
+            }
+        }
+        clearTimeout(t.current)
+        setTimeout(() => {
+            jsControl.current = false
+            clearTimeout(t.current)
+        }, 150)
+
+
+
+    }
+
+    return <div className="history" onScroll={onPageScroll}>
+        <div className="scroll-container">
+            <div className="scroll-list" ref={listDivRef} id='list-wrapper' style={{ height: listDivWrapperHeight ? listDivWrapperHeight + 'px' : '' }}>
+                {list.length && list.map((item, index) =>
+                    <div key={index} style={{ height: item.height + 'px' }} className="scroll-list-item">
+                        {'height-' + item.height}
+                    </div>
+                )}
+            </div>
+        </div>
+        <div ref={divend} className="end" />
+    </div>
+
 }
 
 export default History

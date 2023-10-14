@@ -1,8 +1,16 @@
 .history {
     padding: 0 20px;
-}
-
-.variable-list {
     height: 100vh;
-    overflow-y: scroll;
+    overflow: auto;
+    .scroll-container {
+       // height:  6000px;
+        position: relative;
+        .scroll-list {
+            &-item {
+                border-bottom: 1px solid $border-color;
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
 }

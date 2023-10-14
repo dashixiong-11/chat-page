@@ -1,3 +1,4 @@
+import { post } from '@/utils/server'
 import pic from '@/assets/icons/pic.svg'
 import check from '@/assets/icons/check.svg'
 import folder from '@/assets/icons/folder.svg'
@@ -8,6 +9,7 @@ import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
 import { useState, useEffect, Dispatch, SetStateAction } from 'react'
 import lottie from 'lottie-web';
+import { showToast } from '@/utils/loading'
 import './useSendMessage.scss'
 
 type RecordStatus = 'recording' | 'pause' | 'off' | 'done'
@@ -44,36 +46,47 @@ const RecordBall = ({ status, setStatus }: { status: RecordStatus, setStatus: Di
 }
 
 
-export function useSendMessage() {
+export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting' }) {
     const { portal, remove } = usePortal()
     const [recordStatus, setRecordStatus] = useState<RecordStatus>('done')
     const [translationResult, setTranslationResult] = useState([])
-    const [message,setMessage] = useState('')
+    const [message, setMessage] = useState('')
 
     useEffect(() => {
-        const { appId, timestamp, nonceStr, signature } = {
-            appId: "wxf1193f6efa3350b1",
-            timestamp: '3213213213',
-            nonceStr: 'ddssxx',
-            signature: '579b1a7a460f63964f65ef6673e8b7ea15b63058'
-        }
+    }, [])
 
-        wx.config({
-            debug: false,
-            appId: appId,
-            timestamp: timestamp,
-            nonceStr: nonceStr,
-            signature: signature,
-            jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage', 'downloadImage', 'uploadVoice', 'translateVoice']
-        });
-        wx.error(function (err: any) {
-            console.log('error----', err);
-        })
-        // post('/miniprogram/api/jssdk', {
-        //   url: location.href.split('#')[0]
-        // }).then((res: any) => {
-        //   console.log(res);
-        // }).catch(error => console.log(error));
+    useEffect(() => {
+        post('/miniprogram/api/jssdk', {
+            url: location.href.split('#')[0]
+        }).then((res: any) => {
+            const { appId, timestamp, nonceStr, signature } = {
+                appId: "wxf1193f6efa3350b1",
+                timestamp: '3213213213',
+                nonceStr: 'ddssxx',
+                signature: 'bc54cf8b0a565b200b3a43adccd1648c857f1954'
+            }
+
+            if (res.code === 0 && res.data) {
+                // const { appId = '', timestamp = '', nonceStr = '', signature = '' } = res.data
+                wx.config({
+                    debug: true,
+                    appId: appId,
+                    timestamp: timestamp,
+                    nonceStr: nonceStr,
+                    signature: signature,
+                    jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage', 'downloadImage', 'uploadVoice', 'translateVoice']
+                });
+                wx.error(function (err: any) {
+                    showToast({
+                        message: '未获取授权',
+                        duration: 1500
+                    })
+                    console.log(err, '--------');
+
+                })
+            }
+            console.log(res);
+        }).catch(error => console.log(error));
     }, [])
 
     const startRecording = () => {
@@ -105,6 +118,28 @@ export function useSendMessage() {
         })
     }
 
+    const uploadLocalImage = (localId: string | number) => {
+        console.log('uploadLocalImage', localId);
+        wx.uploadImage({
+            localId,
+            success: (res: any) => {
+                console.log('res.serverId----', res.serverId);
+            }
+        })
+    }
+    const chooseImg = () => {
+        wx.chooseImage({
+            count: 1, // 默认9
+            sizeType: ['original', 'compressed'],
+            sourceType: ['album', 'camera'],
+            success: function (res: any) {
+                var localIds = res.localIds;
+                console.log('localIds---', localIds);
+                uploadLocalImage(localIds[0])
+            }
+        })
+    }
+
     useEffect(() => {
         wx.onVoiceRecordEnd({
             // 录音时间超过一分钟没有停止的时候会执行 complete 回调
@@ -116,7 +151,8 @@ export function useSendMessage() {
 
     useEffect(() => {
         const container = document.querySelector('#lottie-container');
-        if (!container) return
+        const canvas = document.querySelector('#lottie-container canvas');
+        if (!container || canvas) return
         lottie.loadAnimation({
             container: container!,
             renderer: 'canvas',       // 渲染方式 ('svg'/'canvas'/'html')
@@ -124,14 +160,26 @@ export function useSendMessage() {
             autoplay: true,
             path: './src/assets/animation/ball/ball.json'
         });
+        return () => {
+            lottie.destroy()
+        }
     }, [])
+
+    useEffect(() => {
+        if (aiStatus === 'thinking') {
+            lottie.setSpeed(3)
+        } else {
+            lottie.setSpeed(1)
+        }
+    }, [aiStatus])
+
 
     useEffect(() => {
         if (recordStatus === 'recording') {
             portal(<RecordBall status={recordStatus} setStatus={setRecordStatus} />)
-        } else if (recordStatus === 'off' ) {
+        } else if (recordStatus === 'off') {
             remove()
-        }else if (recordStatus === 'done'){
+        } else if (recordStatus === 'done') {
             setMessage(translationResult.join(','))
         }
     }, [recordStatus])
@@ -143,14 +191,14 @@ export function useSendMessage() {
     }
 
     const view = <>
-        <div className={`send-message-action-bar ${(recordStatus === 'recording' || recordStatus === 'pause') ? 'opa0' : ''}`}>
+        <div className='send-message-action-bar'>
             <>
                 <div className="upload-file">
                     <img className='icon' src={folder} alt="" />
                     <span>文件</span>
                 </div>
-                <div className='send-voice' onClick={start} id="lottie-container"></div>
-                <div className="upload-img">
+                <div className={`send-voice ${aiStatus}`} onClick={start} id="lottie-container"></div>
+                <div className="upload-img" onClick={chooseImg}>
                     <img className='icon' src={pic} alt="" />
                     <span>图片</span>
                 </div>
@@ -161,6 +209,7 @@ export function useSendMessage() {
     return {
         view,
         translationResult,
-        message
+        message,
+        recordStatus
     }
 }

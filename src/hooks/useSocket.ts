@@ -17,7 +17,7 @@ export const useSocket = () => {
     const connection_status = localStorage.getItem('connection_status') || 'file'
     console.log(connection_status);
     if (connection_status && connection_status !== 'file') { return }
-    const _client = new Centrifuge('ws://192.168.1.3/im/connection/websocket');
+    const _client = new Centrifuge('wss://192.168.1.3/im/connection/websocket');
     _client.on('connecting', function (ctx) {
       console.log('连接中', ctx);
       showNotification({

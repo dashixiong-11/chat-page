@@ -6,13 +6,15 @@ import { get as getGlobalData } from "@/utils/globalData";
 import { useMessagesData, NewMessageType } from '@/hooks/useMessagesData';
 import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 import history from '@/assets/icons/history.svg'
+import ai_avatar from '@/assets/icons/ai_avatar.png'
 import Markdown from 'react-markdown'
 import { showToast } from '@/utils/loading';
 import './Chat.scss'
 
 
 function Chat() {
-  const { view, message } = useSendMessage()
+  const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
+  const { view, message, recordStatus } = useSendMessage({ aiStatus: aiStatus })
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const [searchValue, setSearchValue] = useState('')
@@ -23,19 +25,13 @@ function Chat() {
   const [historyList, setHistoryList] = useState<NewMessageType[]>([])
   const [result, setResult] = useState<{ value: string, data_type: string }[]>([])
 
-  // function addItemOrReplace(array: Item[], newItem: Item): Item[] {
-  //   if (array.some(item => item.id === newItem.id)) {
-  //     return array.map(item => (item.id === newItem.id ? newItem : item));
-  //   }
-  //   return [...array, newItem];
-  // }
-
   useEffect(() => {
     if (!newMessage || !newMessage.m) return
     const copy = [...historyList]
     if (copy.some(item => item.u?.offset === newMessage.u?.offset)) {
       const c = copy.map(item => item.u?.offset === newMessage.u?.offset ? newMessage : item)
       setHistoryList([...c])
+      setAiStatus('waitting')
     } else {
       setHistoryList([...copy, newMessage])
     }
@@ -55,12 +51,16 @@ function Chat() {
       value: message
     }]).then(function (res) {
       console.log('发送成功');
+      setAiStatus('thinking')
     }, function (err) {
+      setAiStatus('waitting')
       showToast({
         message: '发送失败',
         duration: 1500
       })
       console.log('发送失败', err);
+    }).finally(() => {
+      setSearchValue('')
     })
   }
   useEffect(() => {
@@ -69,27 +69,6 @@ function Chat() {
   }, [message])
 
 
-  const uploadLocalImage = (localId: string | number) => {
-    console.log('uploadLocalImage', localId);
-    wx.uploadImage({
-      localId,
-      success: (res: any) => {
-        console.log('res.serverId----', res.serverId);
-      }
-    })
-  }
-  const chooseImg = () => {
-    wx.chooseImage({
-      count: 1, // 默认9
-      sizeType: ['original', 'compressed'],
-      sourceType: ['album', 'camera'],
-      success: function (res: any) {
-        var localIds = res.localIds;
-        console.log('localIds---', localIds);
-        uploadLocalImage(localIds[0])
-      }
-    })
-  }
 
 
   const onInput = (e: ChangeEvent<HTMLInputElement>,) => {
@@ -102,9 +81,15 @@ function Chat() {
   }
 
 
-  const playVoice = (url: string| undefined) => {
-    if(!url) return
-      console.log(url);
+  const playVoice = (url: string | undefined) => {
+    if (!url) return
+    console.log(url);
+  }
+
+  const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
+    if (e.code === 'Enter') {
+      sendMessage(searchValue)
+    }
   }
 
 
@@ -115,8 +100,11 @@ function Chat() {
     <main style={{ height: '100vh' }} >
       <div className="main-header">
         <div className="search">
-          <input type="text" className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
-          <span onClick={() => sendMessage(searchValue)}>搜索</span>
+          <form action="." style={{ flex: 1 }} onKeyDown={keyDownHandle}>
+            <input type="search" className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
+            <input type="text" style={{ display: 'none' }} />
+          </form>
+          <span style={{ fontSize: '12px', fontWeight: 'bold' }} onClick={() => sendMessage(searchValue)}>搜索</span>
         </div>
       </div>
       <div className="search-res">
@@ -135,30 +123,32 @@ function Chat() {
         }
 
       </div>
-      <div className="message-action">
-        <ul className="messages" style={{ height: `${historyList.length > 0 ? '230px' : '0'}` }}>
-          {historyList.map((item, index) =>
-            <li className='active' key={index}>
-              <div className="user-message">
-                <img src={item.u?.avatar} className='avatar' alt="" />
-                <span className='name'>{item.u?.name} </span>
-                <span className='message'>
-                  {item['m'] && item['m'][0]?.value}
-                </span>
-              </div>
-              {
-                item['m'] && item['m'][1] &&
-                <div className="ai-message">
-                  <img src="" className='avatar' alt="" />
-                  <span className='name'>ai </span>
-                  {item.m && item.m.filter((f, index2) => index2 !== 0 && f.data_type === 'text').map((msg, index3) => <>
-                    <span className='message' key={index3}>{msg.value}</span>
-                  </>)}
+      <div className={`message-action ${(recordStatus === 'recording' || recordStatus === 'pause') ? 'opa0' : ''}`} >
+        <div className="messages" style={{ height: `${historyList.length > 0 ? '230px' : '0'}` }}>
+          <ul>
+            {historyList.map((item, index) =>
+              <li className='active' key={index}>
+                <div className="user-message">
+                  <img src={item.u?.avatar} className='avatar' alt="" />
+                  <span className='name'>{item.u?.name} </span>
+                  <span className='message'>
+                    {item['m'] && item['m'][0]?.value}
+                  </span>
                 </div>
-              }
-            </li>
-          )}
-        </ul>
+                {
+                  item['m'] && item['m'][1] &&
+                  <div className="ai-message">
+                    <img src={ai_avatar} className='avatar' alt="" />
+                    <span className='name'>ai</span>
+                    {item.m && item.m.filter((f, index2) => index2 !== 0 && f.data_type === 'text').map((msg, index3) => <>
+                      <span className='message' key={index3 + '-msg'}>{msg.value}</span>
+                    </>)}
+                  </div>
+                }
+              </li>
+            )}
+          </ul>
+        </div>
         {view}
       </div>
 

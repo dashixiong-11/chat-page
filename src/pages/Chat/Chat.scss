@@ -68,7 +68,7 @@
         .search {
             display: flex;
             align-items: center;
-            padding: 16px;
+            padding: 14px 16px;
             border: 2px solid #333;
             border-radius: 8px;
 
@@ -110,20 +110,36 @@
         }
 
         .message-action {
-            padding: 1em;
             position: fixed;
             width: 100%;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(247, 247, 247, 0.4);
+            background-color: #333333c4;
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(8px);
-            //overflow: hidden;
+            transition: all 300ms;
+
+
+            &.opa0 {
+                opacity: 0;
+            }
 
             .messages {
+                padding-top: 1em;
                 overflow: hidden;
                 transition: all 300ms;
+                position: relative;
+                color: #fff;
+                font-size: 12px;
+
+                &>ul {
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    padding: 1em;
+                }
 
                 li {
                     margin-bottom: 1em;
@@ -160,8 +176,8 @@
 
                 .active {
                     .message {
-                        font-weight: bold;
-                        font-size: 15px;
+                        // font-weight: bold;
+                        font-size: 12px;
                     }
 
                 }
