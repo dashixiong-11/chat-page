@@ -33,28 +33,25 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         // 接口地址代理
-        '/im': {
-          target: `http://${ip}`, // 接口的域名
-          changeOrigin: true,
-          // secure: false, // 如果是https接口，需要配置这个参数
-        },
-        '/im/connection': {
-          target: `ws://${ip}`,
-          changeOrigin: true,
-        },
         '/miniprogram': {
-          target: `http://${ip}`,
+          target: `https://${ip}`,
+          secure: false, // 如果是https接口，需要配置这个参数
           changeOrigin: true,
           bypass: (req, res, options) => {
             const proxyUrl = new URL(options.rewrite(req.url) || '', (options.target) as string)?.href || ''
-            console.log(proxyUrl);
             req.headers['x-req-proxyUrl'] = proxyUrl
             res.setHeader('x-req-proxyUrl', proxyUrl)
           },
           rewrite: path => path.replace(/^\/miniprogram/, '/miniprogram')
         },
+        '/im': {
+          target: `https://${ip}`, // 接口的域名
+          changeOrigin: true,
+          secure: false, // 如果是https接口，需要配置这个参数
+        },
         '/filesystem': {
-          target: `http://${ip}`,
+          target: `https://${ip}`,
+          secure: false, // 如果是https接口，需要配置这个参数
           changeOrigin: true,
         },
       }

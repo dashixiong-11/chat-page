@@ -20,6 +20,9 @@ dependencies:
   install:
     specifier: ^0.13.0
     version: 0.13.0
+  jweixin-1.6.0:
+    specifier: ^1.0.0
+    version: 1.0.0
   lottie-web:
     specifier: ^5.12.2
     version: 5.12.2
@@ -1853,6 +1856,10 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
     dev: true
+
+  /jweixin-1.6.0@1.0.0:
+    resolution: {integrity: sha512-QH69Y/j4h8p9dy6wqIplXmhjLy67AGJswvrjwWUD84HUdB22QyHaX1PmV7oJFbsYL+Vn9Qe1uIx/2NFKkD51Bg==}
+    dev: false
 
   /keyv@4.5.3:
     resolution: {integrity: sha512-QCiSav9WaX1PgETJ+SpNnx2PRRapJ/oRSXM4VO5OGYGSjrxbKPVFVhB3l2OCbLCk329N8qyAtsJjSjvVBWzEug==}

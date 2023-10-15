@@ -123,7 +123,7 @@ function Chat() {
         }
 
       </div>
-      <div className={`message-action ${(recordStatus === 'recording' || recordStatus === 'pause') ? 'opa0' : ''}`} >
+      <div className={`message-action ${(recordStatus === 'recording' || recordStatus === 'translation') ? 'opa0' : ''}`} >
         <div className="messages" style={{ height: `${historyList.length > 0 ? '230px' : '0'}` }}>
           <ul>
             {historyList.map((item, index) =>

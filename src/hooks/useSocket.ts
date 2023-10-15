@@ -2,22 +2,20 @@ import { Centrifuge } from 'centrifuge';
 import { set } from '@/utils/globalData';
 import { useThrottle } from './useThrottle';
 import { useEffect, useState, useRef } from 'react';
-import { useShowToast } from './useShowToast/useShowToast';
-import { showNotification, hideNotification } from '@/utils/loading';
+import { showNotification } from '@/utils/loading';
 
 
 export const useSocket = () => {
-  const { showToast } = useShowToast()
   const maxReconnectAttempts = 3; // 最大重连尝试次数
   const reconnectInterval = 3000; // 重连间隔（毫秒）
   const reconnectAttempts = useRef(0);
   const [client, setClient] = useState<Centrifuge | null>(null)
 
   useEffect(() => {
+    let wsIp = '192.168.1.3'
     const connection_status = localStorage.getItem('connection_status') || 'file'
-    console.log(connection_status);
     if (connection_status && connection_status !== 'file') { return }
-    const _client = new Centrifuge('wss://192.168.1.3/im/connection/websocket');
+    const _client = new Centrifuge(`wss://${wsIp}/im/connection/websocket`)
     _client.on('connecting', function (ctx) {
       console.log('连接中', ctx);
       showNotification({

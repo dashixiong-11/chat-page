@@ -31,11 +31,13 @@
         .send-voice {
             transition: all 600ms;
         }
-        .send-voice.thinking{
+
+        .send-voice.thinking {
             width: 130px;
             height: 130px;
         }
-        .send-voice.waitting{
+
+        .send-voice.waitting {
             width: 100px;
             height: 100px;
         }
@@ -48,6 +50,25 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
+
+        .record-result {
+            width: 100%;
+            margin-bottom: 60px;
+
+            textarea {
+                background-color: transparent;
+                color: #fff;
+                width: 100%;
+                height: 200px;
+                resize: none;
+                outline: none;
+                overflow: hidden;
+                padding: 20px;
+                border:none;
+                font-size: 24px;
+                font-weight: bold;
+            }
+        }
 
         .record-volume {
             display: flex;
@@ -118,8 +139,8 @@
         }
 
         & img {
-            width: 2em;
-            height: 2em;
+            width: 2.2em;
+            height: 2.2em;
         }
     }
 
