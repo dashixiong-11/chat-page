@@ -12,7 +12,6 @@ export function useSub({ channelName }: { channelName?: string }) {
     })
 
     useEffect(() => {
-        console.log(channelName, client);
         if (!channelName || !client) {
             // console.log('toast: 无效的频道名');
             return

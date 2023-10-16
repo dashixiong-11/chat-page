@@ -26,8 +26,12 @@
     .channel-list {
         .item {
             background: #fff;
-            display: flex;
             padding: 0 18px;
+
+            .channel {
+                padding: 15px 20px;
+            }
+
 
             .item-inner {
                 flex: 1;
@@ -36,15 +40,21 @@
                 align-items: center;
                 justify-content: space-between;
 
-                .icon-more {
+                .icon-right {
+                    transition: all 300ms;
                     width: 1em;
                     height: 1em;
+                    margin-right: 1em;
                 }
+            }
+
+            .drawer {
+                overflow: hidden;
+                transition: all 300ms;
             }
         }
 
         .item:not(:last-child) {
-
             .item-inner {
                 border-bottom: 1px solid $border-color;
             }

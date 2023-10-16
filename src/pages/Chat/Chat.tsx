@@ -1,4 +1,3 @@
-import { post } from '@/utils/server'
 import { Centrifuge } from 'centrifuge';
 import { useEffect, useState, ChangeEvent } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
@@ -13,10 +12,10 @@ import './Chat.scss'
 
 
 function Chat() {
-  const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
-  const { view, message, recordStatus } = useSendMessage({ aiStatus: aiStatus })
-  const navigate = useNavigate()
   const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
+  const { view, message, recordStatus, imgs, base64DataArray } = useSendMessage({ aiStatus: aiStatus })
   const [searchValue, setSearchValue] = useState('')
   const [centrifuge] = useState<Centrifuge | undefined>(() => {
     return getGlobalData('client')
@@ -105,6 +104,9 @@ function Chat() {
             <input type="text" style={{ display: 'none' }} />
           </form>
           <span style={{ fontSize: '12px', fontWeight: 'bold' }} onClick={() => sendMessage(searchValue)}>搜索</span>
+        </div>
+        <div className="imgs">
+          {imgs.length > 0 && imgs.map(i => <img key={i} src={i} />)}
         </div>
       </div>
       <div className="search-res">

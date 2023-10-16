@@ -14,34 +14,20 @@ type CategoryListType = {
   value: number | string
 }[]
 
-const Model = ({ cb, remove }: { cb: () => void, remove: () => void }) => {
+const Model = ({ cb, remove, list }: { cb: () => void, remove: () => void, list: CategoryListType }) => {
   const { showToast } = useShowToast()
   const [name, setName] = useState('')
   const [age, setAge] = useState('')
   const [sex, setSex] = useState('男')
   const [channelName, setChannelName] = useState('')
   const [cnChannelName, setCnChannelName] = useState('')
-  const [category, setCategory] = useState<number | string>('')
-  const [categoryList, setCategoryList] = useState<CategoryListType>([])
+  const [category, setCategory] = useState<number | string>(() => list[0].value)
 
   const data = [
     { text: '男', value: '男' },
     { text: '女', value: '女' },
   ]
 
-  const getCategory = async () => {
-    const res = await post('/miniprogram/public/statuses', { "keys": ["channel_category"] }).catch(err => { throw new Error(err) })
-    console.log(res);
-    if (res.code === 0 && res.data) {
-      const list = res.data.statuses?.channel_category
-      list && setCategoryList(list)
-      list && setCategory(list[0].value)
-    }
-  }
-
-  useEffect(() => {
-    getCategory()
-  }, [])
 
   const m = {
     'category': setCategory,
@@ -76,7 +62,7 @@ const Model = ({ cb, remove }: { cb: () => void, remove: () => void }) => {
         "patient_gender": sex
       } : {}
     }).catch(error => {
-      
+
       showToast({
         messages: '创建失败',
         duration: 1500
@@ -99,7 +85,7 @@ const Model = ({ cb, remove }: { cb: () => void, remove: () => void }) => {
     <div className="col">
       <span>当前选择</span>
       <div className="select">
-        <Select data={categoryList} onSelected={e => onFormInputChange(e, 'category')} />
+        <Select data={list} onSelected={e => onFormInputChange(e, 'category')} />
       </div>
     </div>
     <div className="col">
@@ -133,14 +119,16 @@ const Model = ({ cb, remove }: { cb: () => void, remove: () => void }) => {
   </div>
 }
 
-export function useAddChannel(cb: () => void) {
+export function useAddChannel({ cb, categoryList }: { cb: () => void, categoryList: CategoryListType }) {
   const { portal, remove } = usePortal()
   const show = () => {
     portal(
-      <Model cb={cb} remove={remove} />
+      <Model cb={cb} remove={remove} list={categoryList} />
     )
   }
   return {
     show,
   }
 }
+
+export type { CategoryListType }

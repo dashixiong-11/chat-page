@@ -1,4 +1,3 @@
-import { post } from '@/utils/server'
 import pic from '@/assets/icons/pic.svg'
 import check from '@/assets/icons/check.svg'
 import folder from '@/assets/icons/folder.svg'
@@ -6,11 +5,14 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useEffect, Dispatch, SetStateAction, useRef, useCallback } from 'react'
+import { useState, useEffect, Dispatch, SetStateAction, useCallback, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import lottie from 'lottie-web';
 import { showToast } from '@/utils/loading'
 import wx from 'jweixin-1.6.0'
 import './useSendMessage.scss'
+import { post } from '@/utils/server'
 
 type RecordStatus = 'recording' | 'translation' | 'off' | 'done'
 
@@ -26,6 +28,7 @@ const RecordBall = ({ status, setStatus, setText }: {
         setStatus(s)
     }
 
+
     const startRecording = () => {
         wx.startRecord({
             success: () => {
@@ -36,7 +39,6 @@ const RecordBall = ({ status, setStatus, setText }: {
                     message: '拒绝授权将无法使用语音功能',
                     duration: 1500
                 })
-
                 console.log('拒绝授权');
             }
         })
@@ -48,11 +50,7 @@ const RecordBall = ({ status, setStatus, setText }: {
             localId: id,
             isShowProgressTips: 1,
             success: function (res: any) {
-                if (_status === 'done') {
-                    setText(textValue + res.translateResult)
-                } else {
-                    setTextValue(textValue + res.translateResult)
-                }
+                setTextValue(textValue + res.translateResult)
             }
         })
     }, [_status])
@@ -76,12 +74,12 @@ const RecordBall = ({ status, setStatus, setText }: {
     useEffect(() => {
         if (_status === 'recording') {
             startRecording()
-        } else {
-            stopRecording()
+            return
+        } else if (_status === 'done') {
+            setText(textValue)
         }
+        stopRecording()
     }, [_status])
-
-
 
 
     const textareaChangehandle: React.ChangeEventHandler<HTMLTextAreaElement> = (e) => {
@@ -120,64 +118,113 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
     const { portal, remove } = usePortal()
     const [recordStatus, setRecordStatus] = useState<RecordStatus>('done')
     const [message, setMessage] = useState('')
+    const [imgs, setImgs] = useState<string[]>([])
+    const base64DataArray = useRef<string[]>([])
+    const [params] = useSearchParams()
+    const workDir = params.get('workDir')
 
 
-    useEffect(() => {
-        let signLink = ''
-        const ua = navigator.userAgent.toLowerCase()
-        if (/iphone|ipad|ipod/.test(ua)) {
-            signLink = decodeURIComponent(wx.signurl())
-        } else if (/(android)/i.test(ua)) {
-            // alert('安卓终端设备')
-            signLink = location.href
-        } else {
-            // alert('PC终端设备')
-            signLink = location.href
+
+    const attachImageToMessage = async (ids: number[]) => {
+        const res = await post('/filesystem/api/attach', {
+            file_info_ids: ids
+        }).catch(err => { throw new Error(err) })
+        console.log(res, '------');
+        if (res.code === 0 && res.data && res.data.urls && Object.prototype.toString.call(res.data.urls) === '[object Array]') {
+            setImgs(res.data.urls)
         }
-        post('/miniprogram/api/jssdk', {
-            url: signLink
-        }).then((res: any) => {
-            if (res.code === 0 && res.data) {
-                const { appId = '', timestamp = '', nonceStr = '', signature = '' } = res.data
-                wx.config({
-                    debug: false,
-                    appId: appId,
-                    timestamp: timestamp,
-                    nonceStr: nonceStr,
-                    signature: signature,
-                    jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage', 'downloadImage', 'uploadVoice', 'translateVoice']
-                });
-                wx.error(function (err: any) {
-                    showToast({
-                        message: '未获取麦克风权限',
-                        duration: 1500
-                    })
-                    console.log(err, '--------');
+    }
+    const uploadFile = async () => {
+        console.log('files', base64DataArray.current);
+        const formData = new FormData
+        base64DataArray.current.forEach(b => {
+            const blob = dataURLtoBlob(b)
+            console.log('blob', blob);
 
-                })
-            }
-            console.log(res);
-        }).catch(error => console.log(error));
-    }, [])
-
-    const uploadLocalImage = (localId: string | number) => {
-        console.log('uploadLocalImage', localId);
-        wx.uploadImage({
-            localId,
-            success: (res: any) => {
-                console.log('res.serverId----', res.serverId);
+            console.log('append files');
+            if (blob) {
+                formData.append('files', blob)
             }
         })
+        const res = await post('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
+            throw new Error(err)
+        })
+        if (res.code === 0) {
+            base64DataArray.current = []
+            res.data && res.data.length > 0 && attachImageToMessage(res.data)
+        }
+        console.log(res);
     }
-    const chooseImg = () => {
+
+    useEffect(() => {
+        (async () => {
+            await jssdkAuthorize()
+        })()
+    }, [])
+
+    const dataURLtoBlob = (dataurl: string) => {
+        const arr = dataurl.split(',');
+        if (!arr[0].match(/:(.*?);/)) {
+            return ''
+        }
+        const mime = arr[0].match(/:(.*?);/)?.[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        let u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new Blob([u8arr], {
+            type: mime
+        });
+    };
+
+    const eachGetBase64 = (ids: string[]) => {
+        let index = 0
+        let id: number
+
+
+        const get = () => {
+            if (index >= ids.length) {
+                uploadFile()
+                clearTimeout(id)
+                return
+            }
+            wx.getLocalImgData({
+                localId: ids[index], // 图片的localID
+                success: function (res: any) {
+                    const localData = res.localData;
+                    let imageBase64 = '';
+                    if (localData.indexOf('data:image') == 0) {
+                        imageBase64 = localData;
+                    } else {
+                        imageBase64 = 'data:image/jpeg;base64,' + localData.replace(/\n/g, '');
+                    }
+                    console.log('setbase 64');
+                    base64DataArray.current.push(imageBase64)
+                    index++
+                    id = setTimeout(() => {
+                        get()
+                    }, 500)
+                }
+            });
+        }
+        get()
+    }
+
+
+    const chooseImg = async () => {
+
         wx.chooseImage({
-            count: 1, // 默认9
             sizeType: ['original', 'compressed'],
             sourceType: ['album', 'camera'],
-            success: function (res: any) {
-                var localIds = res.localIds;
-                console.log('localIds---', localIds);
-                uploadLocalImage(localIds[0])
+            success: async (res: any) => {
+                const localIds = res.localIds;
+                console.log('localIds', localIds);
+                eachGetBase64(localIds)
+                //const ids = await uploadLocalImage(localIds)
+                //  console.log('ids', ids);
+
             }
         })
     }
@@ -238,7 +285,9 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
 
     return {
         view,
+        imgs,
         message,
-        recordStatus
+        recordStatus,
+        base64DataArray
     }
 }

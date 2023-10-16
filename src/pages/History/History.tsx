@@ -51,9 +51,12 @@ function History() {
 
     const [listDivWrapperHeight, setListDivWrapperHeight] = useState(0)
 
+    const c = document.querySelector('#container')
     useEffect(() => {
         if (listDivRef.current && list.length > 0) {
-            console.log(listDivRef.current.clientHeight);
+            if (listDivRef.current.clientHeight - listDivWrapperHeight > 0) {
+                c && (c.scrollTop = listDivRef.current.clientHeight - listDivWrapperHeight)
+            }
             setListDivWrapperHeight(listDivRef.current.clientHeight)
         }
     }, [list, listDivRef.current])
@@ -70,29 +73,41 @@ function History() {
     const loadMore = useRef(false)
     const t = useRef(0)
     const onPageScroll: UIEventHandler<HTMLDivElement> = (event) => {
-        const { scrollTop } = event.currentTarget;
-        if (jsControl.current) {
-            console.log('js 触发');
-
-        } else {
-
-            if (scrollTop <= 50 && !loadMore.current) {
-                loadMoreItems()
-            }
-        }
         clearTimeout(t.current)
         setTimeout(() => {
             jsControl.current = false
             clearTimeout(t.current)
         }, 150)
-
-
-
     }
 
-    return <div className="history" onScroll={onPageScroll}>
-        <div className="scroll-container">
-            <div className="scroll-list" ref={listDivRef} id='list-wrapper' style={{ height: listDivWrapperHeight ? listDivWrapperHeight + 'px' : '' }}>
+    useEffect(() => { ob() }, [])
+
+    const ob = () => {
+        const container = document.getElementById('container');
+        const firstChild = document.getElementById('first-child');
+        // 创建 IntersectionObserver
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && !jsControl.current) {
+                    loadMoreItems()
+                } else {
+                    console.log('div b 不在 div a 的视口内。');
+                }
+            });
+        }, {
+            root: container, // div a 作为观察的根元素
+            threshold: 0.1  // 至少10%的div b可见时，回调将被触发
+        });
+
+        // 开始观察 div b
+        if (!firstChild) return
+        observer.observe(firstChild);
+    }
+
+    return <div className="history" onScroll={onPageScroll} id='container'>
+        <div className="scroll-container" id='scroll-container' >
+            <div className="scroll-list" ref={listDivRef} id='list-wrapper' >
+                <div id='first-child' > loading...</div>
                 {list.length && list.map((item, index) =>
                     <div key={index} style={{ height: item.height + 'px' }} className="scroll-list-item">
                         {'height-' + item.height}

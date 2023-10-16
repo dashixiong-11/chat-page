@@ -16,7 +16,8 @@ interface wx {
   downloadImage: any,
   translateVoice: any,
   onVoiceRecordEnd: any,
-  signurl: any
+  signurl: any,
+  getLocalImgData: any
 }
 
 declare module 'jweixin-1.6.0' {
