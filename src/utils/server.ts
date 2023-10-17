@@ -38,19 +38,6 @@ service.interceptors.response.use((response) => {
   return Promise.reject(error.response.data)
 })
 
-function postForm(url: string, param = {} ): Promise<ResponseType> {
-  return new Promise((resolve, reject) => {
-    service({
-      method: 'POST',
-      url,
-      data: param,
-      headers: {
-        Accept: 'application/json',
-      }
-    }).then((response: AxiosResponse<ResponseType>) => resolve(response.data)).catch(error => reject(error))
-  })
-
-}
 
 function post(url: string, param = {} ): Promise<ResponseType> {
   return new Promise((resolve, reject) => {

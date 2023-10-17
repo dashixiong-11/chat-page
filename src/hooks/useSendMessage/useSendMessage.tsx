@@ -5,14 +5,12 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useEffect, Dispatch, SetStateAction, useCallback, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useEffect, Dispatch, SetStateAction, useCallback } from 'react'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import lottie from 'lottie-web';
-import { showToast } from '@/utils/loading'
+import { showToast, showLoading, hideLoading } from '@/utils/loading'
 import wx from 'jweixin-1.6.0'
 import './useSendMessage.scss'
-import { post } from '@/utils/server'
 
 type RecordStatus = 'recording' | 'translation' | 'off' | 'done'
 
@@ -82,6 +80,7 @@ const RecordBall = ({ status, setStatus, setText }: {
     }, [_status])
 
 
+
     const textareaChangehandle: React.ChangeEventHandler<HTMLTextAreaElement> = (e) => {
         setTextValue(e.target.value)
     }
@@ -114,47 +113,18 @@ const RecordBall = ({ status, setStatus, setText }: {
 }
 
 
+type Base64DataType = { base: string, id: string }
 export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting' }) {
     const { portal, remove } = usePortal()
     const [recordStatus, setRecordStatus] = useState<RecordStatus>('done')
     const [message, setMessage] = useState('')
-    const [imgs, setImgs] = useState<string[]>([])
-    const base64DataArray = useRef<string[]>([])
-    const [params] = useSearchParams()
-    const workDir = params.get('workDir')
+    const [base64DataArray, setBase64DataArray] = useState<Base64DataType[]>([])
 
-
-
-    const attachImageToMessage = async (ids: number[]) => {
-        const res = await post('/filesystem/api/attach', {
-            file_info_ids: ids
-        }).catch(err => { throw new Error(err) })
-        console.log(res, '------');
-        if (res.code === 0 && res.data && res.data.urls && Object.prototype.toString.call(res.data.urls) === '[object Array]') {
-            setImgs(res.data.urls)
-        }
+    const removeBase64Data = (id: string) => {
+        const updatedItems = base64DataArray.filter(item => item.id !== id);
+        setBase64DataArray(updatedItems);
     }
-    const uploadFile = async () => {
-        console.log('files', base64DataArray.current);
-        const formData = new FormData
-        base64DataArray.current.forEach(b => {
-            const blob = dataURLtoBlob(b)
-            console.log('blob', blob);
-
-            console.log('append files');
-            if (blob) {
-                formData.append('files', blob)
-            }
-        })
-        const res = await post('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
-            throw new Error(err)
-        })
-        if (res.code === 0) {
-            base64DataArray.current = []
-            res.data && res.data.length > 0 && attachImageToMessage(res.data)
-        }
-        console.log(res);
-    }
+    const clearBase64DataArray = () => setBase64DataArray([])
 
     useEffect(() => {
         (async () => {
@@ -162,31 +132,18 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
         })()
     }, [])
 
-    const dataURLtoBlob = (dataurl: string) => {
-        const arr = dataurl.split(',');
-        if (!arr[0].match(/:(.*?);/)) {
-            return ''
-        }
-        const mime = arr[0].match(/:(.*?);/)?.[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        let u8arr = new Uint8Array(n);
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        return new Blob([u8arr], {
-            type: mime
-        });
-    };
-
     const eachGetBase64 = (ids: string[]) => {
+        showLoading()
         let index = 0
         let id: number
+        const imgArray: Base64DataType[] = []
 
 
         const get = () => {
             if (index >= ids.length) {
-                uploadFile()
+                hideLoading()
+                setBase64DataArray(imgArray)
+                //  uploadFile()
                 clearTimeout(id)
                 return
             }
@@ -201,7 +158,8 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
                         imageBase64 = 'data:image/jpeg;base64,' + localData.replace(/\n/g, '');
                     }
                     console.log('setbase 64');
-                    base64DataArray.current.push(imageBase64)
+                    imgArray.push({ base: imageBase64, id: ids[index] })
+                    // setBase64DataArray([...base64DataArray, { base: imageBase64, id: ids[index] }])
                     index++
                     id = setTimeout(() => {
                         get()
@@ -220,7 +178,6 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
             sourceType: ['album', 'camera'],
             success: async (res: any) => {
                 const localIds = res.localIds;
-                console.log('localIds', localIds);
                 eachGetBase64(localIds)
                 //const ids = await uploadLocalImage(localIds)
                 //  console.log('ids', ids);
@@ -243,6 +200,7 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
         });
         return () => {
             lottie.destroy()
+            setRecordStatus('off')
         }
     }, [])
 
@@ -253,6 +211,13 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
             lottie.setSpeed(1)
         }
     }, [aiStatus])
+
+    useEffect(() => {
+        return () => {
+            setRecordStatus('off')
+            remove()
+        }
+    }, [])
 
 
     useEffect(() => {
@@ -285,9 +250,10 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
 
     return {
         view,
-        imgs,
         message,
         recordStatus,
-        base64DataArray
+        base64DataArray,
+        removeBase64Data,
+        clearBase64DataArray
     }
 }

@@ -1,9 +1,12 @@
 import { useEffect, useState, useRef, UIEventHandler } from "react"
+import { StreamPosition, Subscription } from 'centrifuge';
 import './History.scss'
+import { get as getGlobalData } from "@/utils/globalData"
 
 
 
 function History() {
+    const [sub] = useState<Subscription | undefined>(() => getGlobalData('sub'))
     const [list, setList] = useState<any[]>([])
     const divend = useRef<HTMLDivElement>(null)
     const listDivRef = useRef<HTMLDivElement>(null)
@@ -13,6 +16,7 @@ function History() {
     const loadMoreItems = () => {
         console.log('load more');
         loadMore.current = true
+        return
 
         return new Promise<void>((resolve) => {
             setTimeout(() => {
@@ -38,7 +42,7 @@ function History() {
                 height: x
             })
         }
-        setList(l)
+        //   setList(l)
     }, [])
 
     useEffect(() => {
@@ -67,6 +71,22 @@ function History() {
             block: "end"    // 上边框与视窗顶部平齐
         });
     }
+
+    const getHistory = async () => {
+        const stream_position: StreamPosition = getGlobalData('stream_position') || {
+            offset: 0,
+            epoch: ''
+        }
+        const resp = await sub?.history({
+            since: stream_position,
+            limit: 50, reverse: true
+        });
+        console.log(resp);
+    }
+
+    useEffect(() => {
+        getHistory()
+    },)
 
 
 
@@ -105,7 +125,7 @@ function History() {
     }
 
     return <div className="history" onScroll={onPageScroll} id='container'>
-        <div className="scroll-container" id='scroll-container' >
+        {/* <div className="scroll-container" id='scroll-container' >
             <div className="scroll-list" ref={listDivRef} id='list-wrapper' >
                 <div id='first-child' > loading...</div>
                 {list.length && list.map((item, index) =>
@@ -115,7 +135,9 @@ function History() {
                 )}
             </div>
         </div>
-        <div ref={divend} className="end" />
+        <div ref={divend} className="end" /> */}
+        123
+        <input type="file" />
     </div>
 
 }

@@ -78,13 +78,42 @@
             }
 
             .imgs {
-                margin-top: 1em;
-                img {
-                    border-radius: 6px;
-                    overflow: hidden;
-                    width: 50px;
-                    height: 50px;
+                display: flex;
+                padding: 1em;
+                overflow-x: scroll;
+                flex-wrap: nowrap;
+
+
+                .img-item {
+                    position: relative;
+                    display: inline-block;
                     margin-right: 1em;
+                    flex-shrink: 0;
+
+                    .remove-icon-wrapper {
+                        position: absolute;
+                        background: #070707be;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 50%;
+                        padding: 4px;
+                        right: 0;
+                        top: 0;
+                        transform: translate(50%, -50%);
+
+                        .remove-icon {
+                            width: 1em;
+                            height: 1em;
+                        }
+                    }
+
+                    &>.search-img {
+                        border-radius: 6px;
+                        overflow: hidden;
+                        width: 50px;
+                        height: 50px;
+                    }
                 }
             }
 

@@ -20,7 +20,7 @@ export function useSub({ channelName }: { channelName?: string }) {
         s.on('subscribed', async function (ctx) {
             console.log('订阅成功', ctx.streamPosition);
             ctx.streamPosition && setStreamPosition(ctx.streamPosition)
-            setGlobalData('streamPosition', ctx.streamPosition)
+            setGlobalData('stream_position', ctx.streamPosition)
         }).on('error', function (err) {
             subCount.current++
             if (subCount.current > 3) {

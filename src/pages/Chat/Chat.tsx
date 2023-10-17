@@ -1,11 +1,13 @@
 import { Centrifuge } from 'centrifuge';
-import { useEffect, useState, ChangeEvent } from 'react'
+import { useEffect, useState, ChangeEvent, useCallback, useRef } from 'react'
+import { post } from '@/utils/server';
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { get as getGlobalData } from "@/utils/globalData";
-import { useMessagesData, NewMessageType } from '@/hooks/useMessagesData';
+import { useMessagesData, NewMessageType, MessageListType } from '@/hooks/useMessagesData';
 import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 import history from '@/assets/icons/history.svg'
 import ai_avatar from '@/assets/icons/ai_avatar.png'
+import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
 import { showToast } from '@/utils/loading';
 import './Chat.scss'
@@ -13,16 +15,18 @@ import './Chat.scss'
 
 function Chat() {
   const [params] = useSearchParams()
+  const workDir = params.get('workDir')
   const navigate = useNavigate()
   const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
-  const { view, message, recordStatus, imgs, base64DataArray } = useSendMessage({ aiStatus: aiStatus })
+  const { view, message, recordStatus, base64DataArray, removeBase64Data, clearBase64DataArray } = useSendMessage({ aiStatus: aiStatus })
   const [searchValue, setSearchValue] = useState('')
   const [centrifuge] = useState<Centrifuge | undefined>(() => {
     return getGlobalData('client')
   })
   const { newMessage } = useMessagesData({ channelName: params.get('channel_name') || '' })
   const [historyList, setHistoryList] = useState<NewMessageType[]>([])
-  const [result, setResult] = useState<{ value: string, data_type: string }[]>([])
+  const [result, setResult] = useState<MessageListType[]>([])
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!newMessage || !newMessage.m) return
@@ -41,15 +45,77 @@ function Chat() {
     console.log(newMessage, 'newMessage');
   }, [newMessage])
 
+  const dataURLtoBlob = (dataurl: string) => {
+    const arr = dataurl.split(',');
+    if (!arr[0].match(/:(.*?);/)) {
+      return ''
+    }
+    const mime = arr[0].match(/:(.*?);/)?.[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    let u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {
+      type: mime
+    });
+  };
 
-  const sendMessage = (message: string) => {
-    const channelName = params.get('channel_name') || ''
-    console.log('send message', channelName);
-    centrifuge?.publish(channelName, [{
+
+  const attachImageToMessage = async (ids: number[]) => {
+    const res = await post('/filesystem/api/attach', {
+      file_info_ids: ids
+    }).catch(err => { throw new Error(err) })
+    if (res.code === 0 && res.data && res.data.urls && Object.prototype.toString.call(res.data.urls) === '[object Array]') {
+      return res.data.urls
+    } else {
+      return []
+    }
+  }
+  const uploadFile = useCallback(async () => {
+    if (!base64DataArray.length) { return [] }
+    const formData = new FormData
+    base64DataArray.forEach(b => {
+      const blob = dataURLtoBlob(b.base)
+      if (blob) {
+        formData.append('files', blob)
+      }
+    })
+    const res = await post('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
+      throw new Error(err)
+    })
+    if (res.code === 0) {
+      const urls = await attachImageToMessage(res.data)
+      return urls
+    } else {
+      return []
+    }
+  }, [base64DataArray])
+
+
+
+
+  const sendMessage = useCallback(async (message: string) => {
+    const urls = await uploadFile()
+    const messageList: MessageListType = urls.length > 0 ? {
+      data_type: 'multimodal_text',
+      value: []
+    } : {
       data_type: 'text',
       value: message
-    }]).then(function (res) {
+    }
+    if (urls.length > 0) {
+      urls.forEach((url: string) => {
+        (messageList as { data_type: 'multimodal_text', value: { data_type: 'text' | 'image', value: string }[] })
+          .value.push({ data_type: 'image', value: url })
+      })
+    }
+    const channelName = params.get('channel_name') || ''
+    console.log('send message', messageList);
+    centrifuge?.publish(channelName, [messageList]).then(function (res) {
       console.log('发送成功');
+      clearBase64DataArray()
       setAiStatus('thinking')
     }, function (err) {
       setAiStatus('waitting')
@@ -60,14 +126,18 @@ function Chat() {
       console.log('发送失败', err);
     }).finally(() => {
       setSearchValue('')
+      console.log(searchInputRef.current, 'searchInputRef.current');
+      searchInputRef.current?.blur()
     })
-  }
+  }, [base64DataArray])
+
+
+
   useEffect(() => {
     if (!message) return
     sendMessage(message)
   }, [message])
-
-
+  
 
 
   const onInput = (e: ChangeEvent<HTMLInputElement>,) => {
@@ -80,9 +150,9 @@ function Chat() {
   }
 
 
-  const playVoice = (url: string | undefined) => {
-    if (!url) return
-    console.log(url);
+  const playVoice = (msg: MessageListType | undefined) => {
+    if (!msg || !msg.value) return
+    console.log(msg);
   }
 
   const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
@@ -92,6 +162,16 @@ function Chat() {
   }
 
 
+
+  const getMessageView = (message: MessageListType) => {
+    if (message.data_type === 'text') {
+      return <span> {message.value}</span>
+    } else if (message.data_type === 'multimodal_text') {
+      (message.value as { data_type: 'text' | 'image', value: string }[])
+        .forEach((m, index) => <span key={index}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
+    }
+  }
+
   return <div className="chat"  >
     <div className="floating-ball" onClick={() => to('/history')}>
       <img src={history} alt="" />
@@ -100,25 +180,34 @@ function Chat() {
       <div className="main-header">
         <div className="search">
           <form action="." style={{ flex: 1 }} onKeyDown={keyDownHandle}>
-            <input type="search" className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
+            <input type="search" ref={searchInputRef} className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
             <input type="text" style={{ display: 'none' }} />
           </form>
           <span style={{ fontSize: '12px', fontWeight: 'bold' }} onClick={() => sendMessage(searchValue)}>搜索</span>
         </div>
-        <div className="imgs">
-          {imgs.length > 0 && imgs.map(i => <img key={i} src={i} />)}
-        </div>
+        {
+          base64DataArray.length > 0 &&
+          <div className="imgs">
+            {base64DataArray.map(base64 => <div className="img-item">
+              <div className="remove-icon-wrapper" onClick={() => removeBase64Data(base64.id)}>
+                <img className='remove-icon' src={close} alt="" />
+              </div>
+              <img className='search-img' key={base64.id} src={base64.base} />
+            </div>
+            )}
+          </div>
+        }
       </div>
       <div className="search-res">
         {result && result[0] && result[0].value &&
           <div className='res-block'>
             {
               result.find(rf => rf.data_type === 'voice') &&
-              <div className='voice-btn' onClick={() => playVoice(result.find(rf => rf.data_type === 'voice')?.value)}>点击播放语音</div>
+              <div className='voice-btn' onClick={() => playVoice(result.find(rf => rf.data_type === 'voice'))}>点击播放语音</div>
             }
             {
               result[1]?.value ?
-                <Markdown>{result[1].value}</Markdown> :
+                <Markdown>{(result[1]?.value as string)}</Markdown> :
                 <span>思考中...</span>
             }
           </div>
@@ -132,19 +221,24 @@ function Chat() {
               <li className='active' key={index}>
                 <div className="user-message">
                   <img src={item.u?.avatar} className='avatar' alt="" />
-                  <span className='name'>{item.u?.name} </span>
+                  <span className='name'>{item.u?.id === localStorage.getItem('id') ? '我' : item.u?.name} </span>
                   <span className='message'>
-                    {item['m'] && item['m'][0]?.value}
+                    {item['m'] && item['m'][0].data_type === 'text' ? item['m'][0].value : '[图片]'}
                   </span>
                 </div>
                 {
-                  item['m'] && item['m'][1] &&
+                  item['m'] && item['m'].length > 0 && item['m'][1] &&
                   <div className="ai-message">
                     <img src={ai_avatar} className='avatar' alt="" />
                     <span className='name'>ai</span>
-                    {item.m && item.m.filter((f, index2) => index2 !== 0 && f.data_type === 'text').map((msg, index3) => <>
-                      <span className='message' key={index3 + '-msg'}>{msg.value}</span>
-                    </>)}
+                    {item.m && item.m.filter((_, index2) => {
+                      if (item.u?.id === localStorage.getItem('id')) {
+                        return index2 !== 1 && index2 !== 0
+                      } else {
+                        return index2 === 1
+                      }
+                    }).map((msg, index3) => { return getMessageView(msg) }
+                    )}
                   </div>
                 }
               </li>
