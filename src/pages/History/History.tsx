@@ -5,6 +5,9 @@ import { get as getGlobalData } from "@/utils/globalData"
 
 
 
+const  ListItem = (item:any) => {
+    return <div className="history-list-item"></div>
+}
 function History() {
     const [sub] = useState<Subscription | undefined>(() => getGlobalData('sub'))
     const [list, setList] = useState<any[]>([])
@@ -16,22 +19,6 @@ function History() {
     const loadMoreItems = () => {
         console.log('load more');
         loadMore.current = true
-        return
-
-        return new Promise<void>((resolve) => {
-            setTimeout(() => {
-                const newData = Array.from({ length: 10 }, (_, i) => {
-                    const x = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
-                    return {
-                        height: x
-                    }
-                });
-                setList(prevItems => [...newData, ...prevItems]);
-                loadMore.current = false
-                resolve();
-            }, 1000);
-        });
-
     };
 
     useEffect(() => {
@@ -46,7 +33,6 @@ function History() {
     }, [])
 
     useEffect(() => {
-        console.log(divend.current);
         if (!divend.current) return
         setTimeout(() => {
             scrollDown()
@@ -85,8 +71,10 @@ function History() {
     }
 
     useEffect(() => {
+        console.log('sub',sub);
+        
         getHistory()
-    },)
+    },[sub])
 
 
 
@@ -125,19 +113,17 @@ function History() {
     }
 
     return <div className="history" onScroll={onPageScroll} id='container'>
-        {/* <div className="scroll-container" id='scroll-container' >
+        <div className="scroll-container" id='scroll-container' >
             <div className="scroll-list" ref={listDivRef} id='list-wrapper' >
                 <div id='first-child' > loading...</div>
-                {list.length && list.map((item, index) =>
+                {list.length > 0 && list.map((item, index) =>
                     <div key={index} style={{ height: item.height + 'px' }} className="scroll-list-item">
                         {'height-' + item.height}
                     </div>
                 )}
             </div>
         </div>
-        <div ref={divend} className="end" /> */}
-        123
-        <input type="file" />
+        <div ref={divend} className="end" />
     </div>
 
 }

@@ -1,9 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
-import { showLoading,hideLoading } from './loading';
+import { showLoading, hideLoading } from './loading';
 
-interface ResponseType {
+interface ResponseType<T> {
   code: number;
-  data: any;
+  data: T;
   message: string;
 }
 
@@ -39,20 +39,20 @@ service.interceptors.response.use((response) => {
 })
 
 
-function post(url: string, param = {} ): Promise<ResponseType> {
+function post<T>(url: string, param = {}): Promise<ResponseType<T>> {
   return new Promise((resolve, reject) => {
     service({
       method: 'POST',
       url,
       data: param,
-    }).then((response: AxiosResponse<ResponseType>) => resolve(response.data)).catch(error => reject(error))
+    }).then((response: AxiosResponse<ResponseType<T>>) => resolve(response.data)).catch(error => reject(error))
   })
 
 }
 
-function get(url: string, param = {}) {
+function get<T>(url: string, param = {}): Promise<ResponseType<T>> {
   return new Promise((resolve, reject) => {
-    service.get(url, param).then((response: AxiosResponse<ResponseType>) => {
+    service.get(url, param).then((response: AxiosResponse<ResponseType<T>>) => {
       resolve(response.data)
     }).catch(error => reject(error))
   })

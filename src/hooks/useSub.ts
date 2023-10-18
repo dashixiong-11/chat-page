@@ -30,7 +30,7 @@ export function useSub({ channelName }: { channelName?: string }) {
             }
             console.log('订阅失败', err);
         })
-        setGlobalData('sub', sub)
+        setGlobalData('sub', s)
         setSub(s)
         s.subscribe();
 

@@ -37,7 +37,7 @@ export const AddChannel = ({ visible, onClose }: PropTyep) => {
   }, [])
 
   const getCategory = async () => {
-    const res = await post('/miniprogram/public/statuses', { "keys": ["channel_category"] }).catch(err => { throw new Error(err) })
+    const res = await post<any>('/miniprogram/public/statuses', { "keys": ["channel_category"] }).catch(err => { throw new Error(err) })
     if (res.code === 0 && res.data) {
       const list = res.data.statuses?.channel_category
       list && setCategoryList(list)

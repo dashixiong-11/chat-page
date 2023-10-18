@@ -5,7 +5,8 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useEffect, Dispatch, SetStateAction, useCallback } from 'react'
+import { useState, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler, useRef } from 'react'
+import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import lottie from 'lottie-web';
 import { showToast, showLoading, hideLoading } from '@/utils/loading'
@@ -179,9 +180,6 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
             success: async (res: any) => {
                 const localIds = res.localIds;
                 eachGetBase64(localIds)
-                //const ids = await uploadLocalImage(localIds)
-                //  console.log('ids', ids);
-
             }
         })
     }
@@ -232,13 +230,22 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
         setRecordStatus('recording')
     }
 
+    const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
+        const file = e.target.files && e.target.files[0]
+        if (!file) return
+        const urls: any = await pdf2png(file)
+        setBase64DataArray(urls)
+    }
+
+
     const view = <>
         <div className='send-message-action-bar'>
             <>
-                <div className="upload-file">
+                <label className="upload-file">
+                    <input id='file-input' type="file" onChange={fileChangeHandle} />
                     <img className='icon' src={folder} alt="" />
                     <span>文件</span>
-                </div>
+                </label>
                 <div className={`send-voice ${aiStatus}`} onClick={start} id="lottie-container"></div>
                 <div className="upload-img" onClick={chooseImg}>
                     <img className='icon' src={pic} alt="" />

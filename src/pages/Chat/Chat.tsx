@@ -3,13 +3,14 @@ import { useEffect, useState, ChangeEvent, useCallback, useRef } from 'react'
 import { post } from '@/utils/server';
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { get as getGlobalData } from "@/utils/globalData";
-import { useMessagesData, NewMessageType, MessageListType } from '@/hooks/useMessagesData';
+import { useMessagesData } from '@/hooks/useMessagesData';
 import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 import history from '@/assets/icons/history.svg'
 import ai_avatar from '@/assets/icons/ai_avatar.png'
 import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
 import { showToast } from '@/utils/loading';
+import { dataURLtoBlob } from '@/utils/dataURLtoBlob';
 import './Chat.scss'
 
 
@@ -45,26 +46,9 @@ function Chat() {
     console.log(newMessage, 'newMessage');
   }, [newMessage])
 
-  const dataURLtoBlob = (dataurl: string) => {
-    const arr = dataurl.split(',');
-    if (!arr[0].match(/:(.*?);/)) {
-      return ''
-    }
-    const mime = arr[0].match(/:(.*?);/)?.[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    let u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], {
-      type: mime
-    });
-  };
-
 
   const attachImageToMessage = async (ids: number[]) => {
-    const res = await post('/filesystem/api/attach', {
+    const res = await post<any>('/filesystem/api/attach', {
       file_info_ids: ids
     }).catch(err => { throw new Error(err) })
     if (res.code === 0 && res.data && res.data.urls && Object.prototype.toString.call(res.data.urls) === '[object Array]') {
@@ -82,7 +66,7 @@ function Chat() {
         formData.append('files', blob)
       }
     })
-    const res = await post('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
+    const res = await post<any>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
       throw new Error(err)
     })
     if (res.code === 0) {
@@ -98,19 +82,25 @@ function Chat() {
 
   const sendMessage = useCallback(async (message: string) => {
     const urls = await uploadFile()
-    const messageList: MessageListType = urls.length > 0 ? {
-      data_type: 'multimodal_text',
-      value: []
-    } : {
-      data_type: 'text',
-      value: message
+    if (!message.trim() && urls.length === 0) return
+    let messageList: MessageListType = {
+      data_type: 'image',
+      value: urls[0]
     }
-    if (urls.length > 0) {
+    if (urls.length >= 1 && message) {
+      const valueArray: { data_type: 'text' | 'image', value: string }[] = [{ data_type: 'text', value: message }]
       urls.forEach((url: string) => {
-        (messageList as { data_type: 'multimodal_text', value: { data_type: 'text' | 'image', value: string }[] })
-          .value.push({ data_type: 'image', value: url })
+        valueArray.push({ data_type: 'image', value: url })
       })
+      messageList = {
+        data_type: 'multimodal_text',
+        value: valueArray
+      }
+    } else if (urls.length === 0 && message) {
+      messageList = { data_type: 'text', value: message }
     }
+
+
     const channelName = params.get('channel_name') || ''
     console.log('send message', messageList);
     centrifuge?.publish(channelName, [messageList]).then(function (res) {
@@ -134,10 +124,9 @@ function Chat() {
 
 
   useEffect(() => {
-    if (!message) return
     sendMessage(message)
   }, [message])
-  
+
 
 
   const onInput = (e: ChangeEvent<HTMLInputElement>,) => {
@@ -188,11 +177,11 @@ function Chat() {
         {
           base64DataArray.length > 0 &&
           <div className="imgs">
-            {base64DataArray.map(base64 => <div className="img-item">
+            {base64DataArray.map(base64 => <div key={base64.id} className="img-item">
               <div className="remove-icon-wrapper" onClick={() => removeBase64Data(base64.id)}>
                 <img className='remove-icon' src={close} alt="" />
               </div>
-              <img className='search-img' key={base64.id} src={base64.base} />
+              <img className='search-img' src={base64.base} />
             </div>
             )}
           </div>

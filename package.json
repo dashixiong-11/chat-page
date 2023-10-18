@@ -17,6 +17,7 @@
     "install": "^0.13.0",
     "jweixin-1.6.0": "^1.0.0",
     "lottie-web": "^5.12.2",
+    "pdfjs-dist": "^3.11.174",
     "pinyin-pro": "^3.17.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -28,6 +29,7 @@
     "react-window-infinite-loader": "^1.0.9"
   },
   "devDependencies": {
+    "@types/pdfjs-dist": "^2.10.378",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

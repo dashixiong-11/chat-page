@@ -14,7 +14,23 @@
         transition: all 600ms;
 
 
-        .upload-file,
+
+        .upload-file {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            color: #fff;
+            input[type="file"] {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                height: 2em;
+            }
+        }
         .upload-img {
             display: inline-flex;
             flex-direction: column;

@@ -3,16 +3,9 @@ import { useSub } from './useSub';
 import { set as setGlobalData, get as getGlobalData } from '@/utils/globalData';
 import { useEffect, useState } from 'react';
 
-type MessageListType = { data_type: 'multimodal_text', value: { data_type: 'text' | 'image' | 'voice', value: string }[] }
-    | { data_type: 'text' | 'voice', value: string }
-
-type NewMessageType = {
-    m?: MessageListType[]
-    u?: {
-        avatar: string, id: string, name: string, offset: number | undefined
-    }
-}
 function useMessagesData({ channelName }: { channelName?: string }) {
+    console.log('useMessagesData');
+    
     const { sub } = useSub({ channelName })
     const [streamPosition, setStreamPosition] = useState<StreamPosition | null>(null)
     const [newMessage, setNewMessage] = useState<NewMessageType>({})
@@ -26,7 +19,21 @@ function useMessagesData({ channelName }: { channelName?: string }) {
             setGlobalData('stream_position', Object.assign(stream_position, { offset: offset }))
             setNewMessage({ m: data, u: { id: info?.user || '', avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined } })
         })
+
+        setTimeout(async() => {
+
+            const stream_position: StreamPosition = getGlobalData('stream_position') || {
+                offset: 0,
+                epoch: ''
+            }
+            const resp = await sub?.history({
+                since: stream_position,
+                limit: 50, reverse: true
+            });
+            console.log(resp);
+        }, 3000)
     }, [sub, channelName])
+
 
     return {
         newMessage
@@ -35,4 +42,3 @@ function useMessagesData({ channelName }: { channelName?: string }) {
 }
 
 export { useMessagesData }
-export type { NewMessageType, MessageListType }

@@ -6,6 +6,10 @@ export const jssdkAuthorize = () => {
     return new Promise((resolve, reject) => {
         let signLink = ''
         const ua = navigator.userAgent.toLowerCase()
+        console.log(ua);
+        wx.miniProgram.getEnv( res => {
+            console.log(res);
+        })
         if (/iphone|ipad|ipod/.test(ua)) {
             signLink = decodeURIComponent(wx.signurl())
         } else if (/(android)/i.test(ua)) {

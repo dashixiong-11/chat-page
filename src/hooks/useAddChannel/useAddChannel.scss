@@ -30,8 +30,14 @@
   .col {
     display: flex;
     align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid $border-color;
+    padding: 0 20px;
+
+    .col-wrapper {
+      display: flex;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid $border-color;
+    }
 
 
     span {
