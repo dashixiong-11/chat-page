@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom'
-import { useSocket } from '@/hooks/useSocket'
 import { useNavigate } from 'react-router-dom';
 import './Index.scss'
+import { useStore } from '@/hooks/useStore';
 
 
 function Index() {
@@ -14,19 +14,17 @@ function Index() {
   localStorage.setItem('token', token)
   localStorage.setItem('id', id)
   localStorage.setItem('channel_id', channelId)
-  const { client } = useSocket()
+  const { initializeWs } = useStore()
   useEffect(() => {
-
-    if (token && client) {
-      client.setToken(token)
-      client.connect()
-      navigate('/channels')
+    if (token) {
+      initializeWs(token, () => {
+        navigate('/channels')
+      })
     }
-  }, [client])
+  }, [])
 
 
-  return <div className="home">
-  </div>
+  return <> </>
 }
 
 export default Index

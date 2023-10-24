@@ -1,29 +1,31 @@
-import { post, get } from '@/utils/server'
+import { get } from '@/utils/server'
 import { useNavigate } from 'react-router-dom';
 import right from '@/assets/icons/right.svg'
 import plus from '@/assets/icons/plus.svg'
 import { useEffect, useState, } from 'react'
 import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
+import { useStore } from '@/hooks/useStore';
 import './Channels.scss'
 
 
-const ChannelItem = ({ item, cb }: { item: Item, cb: () => void }) => {
+const ChannelItem = ({ item, cb, getChannel }: { item: Item, cb: (name: string, fn: () => void) => void, getChannel: () => void }) => {
   const [height, setHeight] = useState<string | number>(0)
 
-
   const { show } = useAddChannel({
-    cb: cb,
+    cb: getChannel,
   })
 
   const navigate = useNavigate()
   const to = (channel: Channel) => {
     const { name, cn_name } = channel
+    document.title = cn_name;
     const { workDir } = channel.chan_info
-    navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
+    cb(name, () => {
+      navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
+    })
   }
 
   const drawerTrigger = () => {
-
     setHeight(height === 0 ? '1000px' : 0)
   }
 
@@ -44,7 +46,7 @@ const ChannelItem = ({ item, cb }: { item: Item, cb: () => void }) => {
       <div className='channel-drawer' style={{ maxHeight: height }} >
         {item.children && item.children.length > 0 &&
           <div className='channel-child'>
-            {item.children.map(cItem => <ChannelItem cb={cb} key={cItem.id + cItem.name} item={cItem} />)}
+            {item.children.map(cItem => <ChannelItem cb={cb} getChannel={getChannel} key={cItem.id + cItem.name} item={cItem} />)}
           </div>
         }
         {item.channels && item.channels.length > 0 && item.channels.map((channelItem, channelIndex) =>
@@ -58,6 +60,7 @@ const ChannelItem = ({ item, cb }: { item: Item, cb: () => void }) => {
 }
 
 function Channels() {
+  const { initializeSub } = useStore()
   const channelId = localStorage.getItem('channel_id')
   const [channel, setChannel] = useState<Item | undefined>(undefined)
   const getChannel = async () => {
@@ -67,16 +70,15 @@ function Channels() {
     if (res.code === 0 && res.data) {
       const result = res.data
       setChannel(result)
-      document.title = result ? result.name : '频道列表';
     }
   }
 
 
 
 
-
   useEffect(() => {
     (async () => {
+      document.title = '频道列表';
       await getChannel()
     })()
   }, [])
@@ -90,7 +92,7 @@ function Channels() {
       </div>
     </div> */}
     <div className="channel-list">
-      {channel && <ChannelItem cb={getChannel} item={channel} />}
+      {channel && <ChannelItem cb={initializeSub} item={channel} getChannel={getChannel} />}
     </div>
   </div>
 }

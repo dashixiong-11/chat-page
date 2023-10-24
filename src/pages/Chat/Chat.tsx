@@ -1,9 +1,7 @@
-import { Centrifuge } from 'centrifuge';
 import { useEffect, useState, ChangeEvent, useCallback, useRef } from 'react'
 import { post } from '@/utils/server';
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { get as getGlobalData } from "@/utils/globalData";
-import { useMessagesData } from '@/hooks/useMessagesData';
+import { useStore } from '@/hooks/useStore';
 import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
 import history from '@/assets/icons/history.svg'
 import ai_avatar from '@/assets/icons/ai_avatar.png'
@@ -21,13 +19,11 @@ function Chat() {
   const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
   const { view, message, recordStatus, base64DataArray, removeBase64Data, clearBase64DataArray } = useSendMessage({ aiStatus: aiStatus })
   const [searchValue, setSearchValue] = useState('')
-  const [centrifuge] = useState<Centrifuge | undefined>(() => {
-    return getGlobalData('client')
-  })
-  const { newMessage } = useMessagesData({ channelName: params.get('channel_name') || '' })
+  const newMessage = useStore((state) => state.newMessage)
   const [historyList, setHistoryList] = useState<NewMessageType[]>([])
   const [result, setResult] = useState<MessageListType[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const { ws } = useStore()
 
   useEffect(() => {
     if (!newMessage || !newMessage.m) return
@@ -103,7 +99,7 @@ function Chat() {
 
     const channelName = params.get('channel_name') || ''
     console.log('send message', messageList);
-    centrifuge?.publish(channelName, [messageList]).then(function (res) {
+    ws?.publish(channelName, [messageList]).then(function (res) {
       console.log('发送成功');
       clearBase64DataArray()
       setAiStatus('thinking')
@@ -116,7 +112,6 @@ function Chat() {
       console.log('发送失败', err);
     }).finally(() => {
       setSearchValue('')
-      console.log(searchInputRef.current, 'searchInputRef.current');
       searchInputRef.current?.blur()
     })
   }, [base64DataArray])
@@ -151,13 +146,12 @@ function Chat() {
   }
 
 
-
   const getMessageView = (message: MessageListType) => {
     if (message.data_type === 'text') {
       return <span> {message.value}</span>
     } else if (message.data_type === 'multimodal_text') {
-      (message.value as { data_type: 'text' | 'image', value: string }[])
-        .forEach((m, index) => <span key={index}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
+      return (message.value as { data_type: 'text' | 'image', value: string }[])
+        .map((m, index) => <span key={index + '-' + m.data_type}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
     }
   }
 
@@ -212,7 +206,7 @@ function Chat() {
                   <img src={item.u?.avatar} className='avatar' alt="" />
                   <span className='name'>{item.u?.id === localStorage.getItem('id') ? '我' : item.u?.name} </span>
                   <span className='message'>
-                    {item['m'] && item['m'][0].data_type === 'text' ? item['m'][0].value : '[图片]'}
+                    {item['m'] && item['m'][0] && getMessageView(item['m'][0])}
                   </span>
                 </div>
                 {

@@ -12,14 +12,16 @@ export const useSocket = () => {
   const [client, setClient] = useState<Centrifuge | null>(null)
 
   useEffect(() => {
-    let wsIp = '192.168.1.3'
+    const wsIp = '192.168.1.3'
     const connection_status = localStorage.getItem('connection_status') || 'file'
     if (connection_status && connection_status !== 'file') { return }
-    const _client = new Centrifuge(`wss://${wsIp}/im/connection/websocket`,{getToken:()=> new Promise(()=>{
-      wx.miniProgram.reLaunch({
-        url:'/pages/login/login'
+    const _client = new Centrifuge(`wss://${wsIp}/im/connection/websocket`, {
+      getToken: () => new Promise(() => {
+        wx.miniProgram.reLaunch({
+          url: '/pages/login/login'
+        })
       })
-    })})
+    })
     _client.on('connecting', function (ctx) {
       console.log('连接中', ctx);
       showNotification({

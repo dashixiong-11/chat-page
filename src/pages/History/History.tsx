@@ -1,43 +1,37 @@
 import { useEffect, useState, useRef, UIEventHandler } from "react"
-import { StreamPosition, Subscription } from 'centrifuge';
+import { useStore } from '@/hooks/useStore';
 import './History.scss'
-import { get as getGlobalData } from "@/utils/globalData"
 
 
 
-const  ListItem = (item:any) => {
+const ListItem = ({ item }: { item: any }) => {
+    if (item.data_type === 'text') {
+        return <span> {item.value}</span>
+    } else if (item.data_type === 'multimodal_text') {
+        return (item.value as { data_type: 'text' | 'image', value: string }[])
+            .map((m, index) => <span key={index}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
+    }
+
     return <div className="history-list-item"></div>
 }
 function History() {
-    const [sub] = useState<Subscription | undefined>(() => getGlobalData('sub'))
+    const { messageList, getHistory } = useStore()
     const [list, setList] = useState<any[]>([])
     const divend = useRef<HTMLDivElement>(null)
     const listDivRef = useRef<HTMLDivElement>(null)
-    const [scrollOffset, setScrollOffset] = useState(0);
+    const [isLoading, setIsloading] = useState(false)
     const jsControl = useRef(false)
-
-    const loadMoreItems = () => {
-        console.log('load more');
-        loadMore.current = true
-    };
-
-    useEffect(() => {
-        const l = []
-        for (let i = 20; i >= 0; i--) {
-            const x = Math.floor(Math.random() * (500 - 50 + 1)) + 50;
-            l.push({
-                height: x
-            })
-        }
-        //   setList(l)
-    }, [])
-
     useEffect(() => {
         if (!divend.current) return
         setTimeout(() => {
             scrollDown()
         }, 100)
     }, [divend.current])
+
+    useEffect(() => {
+        console.log('messageList', messageList);
+
+    }, [messageList])
 
     const [listDivWrapperHeight, setListDivWrapperHeight] = useState(0)
 
@@ -58,27 +52,21 @@ function History() {
         });
     }
 
-    const getHistory = async () => {
-        const stream_position: StreamPosition = getGlobalData('stream_position') || {
-            offset: 0,
-            epoch: ''
-        }
-        const resp = await sub?.history({
-            since: stream_position,
-            limit: 50, reverse: true
-        });
-        console.log(resp);
-    }
-
+    // const getHistory = async () => {
+    //     setIsloading(true)
+    //     const resp = await sub?.history({
+    //         since: stream_position,
+    //         limit: 50, reverse: true
+    //     });
+    //     setIsloading(false)
+    //     console.log(resp);
+    // }
     useEffect(() => {
-        console.log('sub',sub);
-        
         getHistory()
-    },[sub])
+    }, [])
 
 
 
-    const loadMore = useRef(false)
     const t = useRef(0)
     const onPageScroll: UIEventHandler<HTMLDivElement> = (event) => {
         clearTimeout(t.current)
@@ -97,9 +85,7 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
-                    loadMoreItems()
-                } else {
-                    console.log('div b 不在 div a 的视口内。');
+                    //  getHistory()
                 }
             });
         }, {
@@ -115,12 +101,8 @@ function History() {
     return <div className="history" onScroll={onPageScroll} id='container'>
         <div className="scroll-container" id='scroll-container' >
             <div className="scroll-list" ref={listDivRef} id='list-wrapper' >
-                <div id='first-child' > loading...</div>
-                {list.length > 0 && list.map((item, index) =>
-                    <div key={index} style={{ height: item.height + 'px' }} className="scroll-list-item">
-                        {'height-' + item.height}
-                    </div>
-                )}
+                <div id='first-child' > {isLoading ? '加载中...' : ''} </div>
+                {messageList && messageList.list && messageList.list.map((item, index) => <ListItem key={index} item={item} />)}
             </div>
         </div>
         <div ref={divend} className="end" />
