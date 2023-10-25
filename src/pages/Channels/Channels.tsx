@@ -2,18 +2,15 @@ import { get } from '@/utils/server'
 import { useNavigate } from 'react-router-dom';
 import right from '@/assets/icons/right.svg'
 import plus from '@/assets/icons/plus.svg'
+import add_fill from '@/assets/icons/add_fill.svg'
 import { useEffect, useState, } from 'react'
 import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
 import { useStore } from '@/hooks/useStore';
 import './Channels.scss'
 
 
-const ChannelItem = ({ item, cb, getChannel }: { item: Item, cb: (name: string, fn: () => void) => void, getChannel: () => void }) => {
+const ChannelItem = ({ item, cb, show }: { item: Item, cb: (name: string, fn: () => void) => void, show: (item: Item) => void }) => {
   const [height, setHeight] = useState<string | number>(0)
-
-  const { show } = useAddChannel({
-    cb: getChannel,
-  })
 
   const navigate = useNavigate()
   const to = (channel: Channel) => {
@@ -46,7 +43,7 @@ const ChannelItem = ({ item, cb, getChannel }: { item: Item, cb: (name: string, 
       <div className='channel-drawer' style={{ maxHeight: height }} >
         {item.children && item.children.length > 0 &&
           <div className='channel-child'>
-            {item.children.map(cItem => <ChannelItem cb={cb} getChannel={getChannel} key={cItem.id + cItem.name} item={cItem} />)}
+            {item.children.map(cItem => <ChannelItem cb={cb} show={show} key={cItem.id + cItem.name} item={cItem} />)}
           </div>
         }
         {item.channels && item.channels.length > 0 && item.channels.map((channelItem, channelIndex) =>
@@ -63,6 +60,7 @@ function Channels() {
   const { initializeSub } = useStore()
   const channelId = localStorage.getItem('channel_id')
   const [channel, setChannel] = useState<Item | undefined>(undefined)
+  const navigate = useNavigate()
   const getChannel = async () => {
     if (!channelId) return
     const res = await get<Item>('/miniprogram/api/channel' + `/${channelId}`).catch(err => { throw new Error(err) })
@@ -72,9 +70,20 @@ function Channels() {
       setChannel(result)
     }
   }
+  const { show } = useAddChannel({
+    cb: getChannel,
+  })
 
 
 
+  const to = (channel: Channel) => {
+    const { name, cn_name } = channel
+    document.title = cn_name;
+    const { workDir } = channel.chan_info
+    initializeSub(name, () => {
+      navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
+    })
+  }
 
   useEffect(() => {
     (async () => {
@@ -85,14 +94,29 @@ function Channels() {
 
 
   return <div className="channels">
-    {/* <div className="add-channel-nav">
-      <div className='add-btn' onClick={onAddChannel}>
+    <div className="add-channel-nav">
+      <div className='add-btn' onClick={() => channel && show(channel)}>
         <img src={add_fill} alt="" />
         <span> 新增频道 </span>
       </div>
-    </div> */}
+    </div>
     <div className="channel-list">
-      {channel && <ChannelItem cb={initializeSub} item={channel} getChannel={getChannel} />}
+      {channel &&
+        <div className='channel' >
+          <div className='channel-drawer' >
+            {channel.children && channel.children.length > 0 &&
+              <div className='channel-child'>
+                {channel.children.map((cItem, index) => <ChannelItem key={index} cb={initializeSub} show={show} item={cItem} />)}
+              </div>
+            }
+            {channel.channels && channel.channels.length > 0 && channel.channels.map((channelItem, channelIndex) =>
+              <div className="channel-item" onClick={() => to(channelItem)} key={channelIndex + 'channels'}>
+                {channelItem.cn_name}
+              </div>
+            )}
+          </div>
+        </div >
+      }
     </div>
   </div>
 }

@@ -1,6 +1,11 @@
 .channels {
-    min-height: 100vh;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    right: 0;
+    width: 100%;
     background: #f7f7f7;
+    overflow: auto;
 
     .add-channel-nav {
         padding: 10px;
@@ -24,7 +29,7 @@
     }
 
     .channel-list {
-        padding: 0 20px;
+        padding: 0 20px 40px;
 
 
         .channel-name {

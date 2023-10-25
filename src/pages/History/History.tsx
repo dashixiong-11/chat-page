@@ -1,22 +1,55 @@
 import { useEffect, useState, useRef, UIEventHandler } from "react"
 import { useStore } from '@/hooks/useStore';
+import ai_avatar from '@/assets/icons/ai_avatar.png'
 import './History.scss'
 
 
 
-const ListItem = ({ item }: { item: any }) => {
-    if (item.data_type === 'text') {
-        return <span> {item.value}</span>
-    } else if (item.data_type === 'multimodal_text') {
-        return (item.value as { data_type: 'text' | 'image', value: string }[])
-            .map((m, index) => <span key={index}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
+const ListItem = ({ item }: { item: NewMessageType }) => {
+
+    const getMessageView = (message: MessageListType) => {
+        if (message.data_type === 'text') {
+            return <span key={item.u?.offset}> {message.value}</span>
+        } else if (message.data_type === 'multimodal_text') {
+            return (message.value as { data_type: 'text' | 'image', value: string }[])
+                .map((m, index) => <span key={index + '-' + m.data_type}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
+        }
     }
 
-    return <div className="history-list-item"></div>
+    return <li className='message-wrapper' key={item.u?.offset}>
+        <div className="user-message m">
+            <img src={item.u?.avatar} className='avatar' alt="" />
+            <div className="user-message-right right">
+                <span className='name'>{item.u?.id === localStorage.getItem('id') ? '我' : item.u?.name} </span>
+                <div className='message user-block'>
+                    {item['m'] && item['m'][0] && getMessageView(item['m'][0])}
+                </div>
+            </div>
+        </div>
+        {
+            item['m'] && item['m'].length > 0 && item['m'][1] &&
+            <div className="ai-message m">
+                <img src={ai_avatar} className='avatar' alt="" />
+                <div className="ai-message-right right">
+                    <span className='name'>ai</span>
+                    <div className="message ai-block">
+                        {item.m && item.m.filter((_, index2) => {
+                            if (item.u?.id === localStorage.getItem('id')) {
+                                return index2 !== 1 && index2 !== 0
+                            } else {
+                                return index2 === 1
+                            }
+                        }).map((msg, index3) => { return getMessageView(msg) }
+                        )}
+                    </div>
+                </div>
+            </div>
+        }
+    </li>
+
 }
 function History() {
     const { messageList, getHistory } = useStore()
-    const [list, setList] = useState<any[]>([])
     const divend = useRef<HTMLDivElement>(null)
     const listDivRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsloading] = useState(false)
@@ -29,7 +62,9 @@ function History() {
     }, [divend.current])
 
     useEffect(() => {
-        console.log('messageList', messageList);
+        if (messageList.changeType === 'new') {
+            scrollDown()
+        }
 
     }, [messageList])
 
@@ -37,13 +72,13 @@ function History() {
 
     const c = document.querySelector('#container')
     useEffect(() => {
-        if (listDivRef.current && list.length > 0) {
+        if (listDivRef.current && messageList.list.length > 0) {
             if (listDivRef.current.clientHeight - listDivWrapperHeight > 0) {
                 c && (c.scrollTop = listDivRef.current.clientHeight - listDivWrapperHeight)
             }
             setListDivWrapperHeight(listDivRef.current.clientHeight)
         }
-    }, [list, listDivRef.current])
+    }, [messageList, listDivRef.current])
 
     const scrollDown = () => {
         jsControl.current = true
@@ -52,15 +87,7 @@ function History() {
         });
     }
 
-    // const getHistory = async () => {
-    //     setIsloading(true)
-    //     const resp = await sub?.history({
-    //         since: stream_position,
-    //         limit: 50, reverse: true
-    //     });
-    //     setIsloading(false)
-    //     console.log(resp);
-    // }
+
     useEffect(() => {
         getHistory()
     }, [])
@@ -85,7 +112,10 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
-                    //  getHistory()
+                    setIsloading(true)
+                    getHistory(() => {
+                        setIsloading(false)
+                    })
                 }
             });
         }, {

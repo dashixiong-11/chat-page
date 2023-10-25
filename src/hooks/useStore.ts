@@ -7,13 +7,14 @@ type StoreType = {
     ws: Centrifuge | null,
     sub: Subscription | null,
     newMessage: NewMessageType,
+    currentSubName: string,
     history: Array<NewMessageType>,
     messageList: { list: Array<NewMessageType>, changeType: 'new' | 'history' },
     streamPosition: StreamPosition,
     initializeWs: (token: string, cb: () => void) => void,
     initializeSub: (channelName: string, cb: () => void) => void,
     setHistory: (message: NewMessageType) => void,
-    getHistory: () => void,
+    getHistory: (cb?: () => void) => void,
     setSub: (s: Subscription | null) => void,
     setNewMessage: (message: NewMessageType) => void,
     modifyList: (message: NewMessageType | NewMessageType[]) => void,
@@ -29,19 +30,25 @@ const useStore = create<StoreType>((set, get) => {
     return {
         ws: null,
         sub: null,
+        currentSubName: '',
         messageList: { list: [], changeType: 'new' },
         history: [],
         newMessage: {},
         streamPosition: { epoch: "", offset: 0 },
         setSub: (s) => { set(state => ({ ...state, sub: s })) },
         setHistory: (message) => { set((state) => ({ ...state, history: [message, ...state.history] })) },
-        getHistory: async () => {
+        getHistory: async (cb) => {
             const sub = get().sub;
             const sp = get().streamPosition;
+            if (sp.offset === 1) {
+                cb && cb()
+                return
+            }
             const resp = await sub?.history({
                 since: sp,
                 limit: 50, reverse: true
             });
+            cb && cb()
             if (!resp) return
             const publications: any = resp.publications;
             const resArray = (publications as PublicationsType[]).map(item => ({ m: item.data, u: { id: item.info?.user, avatar: item.tags?.avatar, offset: item.offset, name: item.tags?.nickname, seed: item.tags?.seed } }))
@@ -62,11 +69,13 @@ const useStore = create<StoreType>((set, get) => {
                 })
             }).on('connected', function (ctx) {
                 console.log('连接成功', ctx);
+                console.log('ws.subscriptions()', ws.subscriptions());
                 showNotification({
                     message: '连接成功',
                     type: 'success',
                     duration: 1500
                 })
+
                 const id = setTimeout(() => {
                     cb()
                     clearTimeout(id)
@@ -124,28 +133,33 @@ const useStore = create<StoreType>((set, get) => {
                 const msg = { m: data, u: { id: info?.user || '', avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined } }
                 get().setNewMessage(msg)
                 get().modifyList(msg)
+            }).on('error', () => {
+
             })
             s.subscribe();
         },
         removeSub: () => {
-
+            console.log('取消订阅');
             get().sub?.unsubscribe();
             get().ws?.removeSubscription(get().sub)
         },
-        modifyList: (data: any) => {
+        modifyList: (data: Array<NewMessageType> | NewMessageType) => {
             const ml = get().messageList;
             const sp = get().streamPosition;
+            if (!data) return
+
             if (Object.prototype.toString.call(data) === '[object Array]') {
-                set({ streamPosition: { ...sp, offset: data[0].offset } })
-                set({ messageList: { list: [...data, ...ml.list], changeType: 'history' } })
+                const data0 = (data as NewMessageType[])[0]
+                set({ streamPosition: { ...sp, offset: data0?.u?.offset || 0 } })
+                set({ messageList: { list: [...(data as NewMessageType[]), ...ml.list], changeType: 'history' } })
             } else if (Object.prototype.toString.call(data) === '[object Object]') {
-                const cp = [...ml.list]
+                const cp: NewMessageType[] = [...ml.list]
                 if (cp.length === 0) return
-                const index = cp.findIndex(item => item && item.u?.offset === data.offset);
+                const index = cp.findIndex(item => item && item.u?.offset === (data as NewMessageType).u?.offset);
                 if (index !== -1) {
-                    cp[index] = data;
+                    (cp as NewMessageType[])[index] = data as NewMessageType;
                 } else {
-                    cp.push(data);
+                    cp.push((data as NewMessageType));
                 }
                 set({ messageList: { list: cp, changeType: 'new' } })
             }

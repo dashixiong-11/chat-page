@@ -7,7 +7,7 @@ import history from '@/assets/icons/history.svg'
 import ai_avatar from '@/assets/icons/ai_avatar.png'
 import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
-import { showToast } from '@/utils/loading';
+import { showLoading, showToast, hideLoading } from '@/utils/loading';
 import { dataURLtoBlob } from '@/utils/dataURLtoBlob';
 import './Chat.scss'
 
@@ -43,7 +43,7 @@ function Chat() {
   }, [newMessage])
 
 
-  const attachImageToMessage = async (ids: number[]) => {
+  const attachImageToMessage = async (ids: string[]) => {
     const res = await post<any>('/filesystem/api/attach', {
       file_info_ids: ids
     }).catch(err => { throw new Error(err) })
@@ -53,7 +53,7 @@ function Chat() {
       return []
     }
   }
-  const uploadFile = useCallback(async () => {
+  const uploadFile: () => Promise<string[]> = useCallback(async () => {
     if (!base64DataArray.length) { return [] }
     const formData = new FormData
     base64DataArray.forEach(b => {
@@ -62,7 +62,7 @@ function Chat() {
         formData.append('files', blob)
       }
     })
-    const res = await post<any>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
+    const res = await post<string[]>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
       throw new Error(err)
     })
     if (res.code === 0) {
@@ -79,21 +79,19 @@ function Chat() {
   const sendMessage = useCallback(async (message: string) => {
     const urls = await uploadFile()
     if (!message.trim() && urls.length === 0) return
-    let messageList: MessageListType = {
-      data_type: 'image',
-      value: urls[0]
+    showLoading()
+    const messageList: MessageListType = {
+      data_type: 'text',
+      value: message
     }
     if (urls.length >= 1 && message) {
       const valueArray: { data_type: 'text' | 'image', value: string }[] = [{ data_type: 'text', value: message }]
       urls.forEach((url: string) => {
         valueArray.push({ data_type: 'image', value: url })
       })
-      messageList = {
-        data_type: 'multimodal_text',
-        value: valueArray
-      }
-    } else if (urls.length === 0 && message) {
-      messageList = { data_type: 'text', value: message }
+      Object.assign(messageList, { data_type: 'multimodal_text', value: [{ data_type: 'text', value: message }, ...urls.map(url => ({ data_type: 'image', value: url }))] })
+    } else if (urls.length === 1) {
+      Object.assign(messageList, { data_type: 'image', value: urls[0] })
     }
 
 
@@ -112,6 +110,7 @@ function Chat() {
       console.log('发送失败', err);
     }).finally(() => {
       setSearchValue('')
+      hideLoading()
       searchInputRef.current?.blur()
     })
   }, [base64DataArray])
