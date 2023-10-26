@@ -1,7 +1,7 @@
 import { post } from "@/utils/server"
 import usePortal from "../usePortal/usePortal"
 import { useShowToast } from "../useShowToast/useShowToast"
-import { ChangeEvent, useEffect, useState } from "react"
+import { ChangeEvent, useState } from "react"
 import { Select } from "@/components/Select/Select"
 import close from '@/assets/icons/close.svg'
 import { pinyin } from 'pinyin-pro';

@@ -5,7 +5,7 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler, useRef } from 'react'
+import { useState, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler } from 'react'
 import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import lottie from 'lottie-web';

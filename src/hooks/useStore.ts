@@ -24,8 +24,8 @@ type StoreType = {
 
 const useStore = create<StoreType>((set, get) => {
     const wsIp = '192.168.1.3'
-    const maxReconnectAttempts = 3; // 最大重连尝试次数
-    const reconnectInterval = 3000; // 重连间隔（毫秒）
+    // const maxReconnectAttempts = 3; // 最大重连尝试次数
+    // const reconnectInterval = 3000; // 重连间隔（毫秒）
 
     return {
         ws: null,
@@ -99,10 +99,10 @@ const useStore = create<StoreType>((set, get) => {
                 })
             }).on('disconnected', function (ctx) {
                 console.log('关闭连接', ctx);
-                // showNotification({
-                //   message: '连接失败',
-                //   type: 'error',
-                // })
+                showNotification({
+                    message: '连接被关闭',
+                    type: 'error',
+                })
             })
             set({ ws: ws })
             ws.setToken(token)

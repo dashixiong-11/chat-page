@@ -12,7 +12,7 @@ export const useSocket = () => {
   const [client, setClient] = useState<Centrifuge | null>(null)
 
   useEffect(() => {
-    const wsIp = '192.168.1.3'
+    const wsIp = import.meta.env.WS_IP_VALUE
     const connection_status = localStorage.getItem('connection_status') || 'file'
     if (connection_status && connection_status !== 'file') { return }
     const _client = new Centrifuge(`wss://${wsIp}/im/connection/websocket`, {

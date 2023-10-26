@@ -32,6 +32,7 @@ function Chat() {
       const c = copy.map(item => item.u?.offset === newMessage.u?.offset ? newMessage : item)
       setHistoryList([...c])
       setAiStatus('waitting')
+      hideLoading()
     } else {
       setHistoryList([...copy, newMessage])
     }
@@ -97,7 +98,7 @@ function Chat() {
 
     const channelName = params.get('channel_name') || ''
     console.log('send message', messageList);
-    ws?.publish(channelName, [messageList]).then(function (res) {
+    ws?.publish(channelName, [messageList]).then(function () {
       console.log('发送成功');
       clearBase64DataArray()
       setAiStatus('thinking')
@@ -110,7 +111,6 @@ function Chat() {
       console.log('发送失败', err);
     }).finally(() => {
       setSearchValue('')
-      hideLoading()
       searchInputRef.current?.blur()
     })
   }, [base64DataArray])
@@ -219,7 +219,7 @@ function Chat() {
                       } else {
                         return index2 === 1
                       }
-                    }).map((msg, index3) => { return getMessageView(msg) }
+                    }).map((msg ) => { return getMessageView(msg) }
                     )}
                   </div>
                 }

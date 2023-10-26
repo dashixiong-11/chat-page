@@ -34,7 +34,7 @@ export function useSub() {
             }, 500)
         }).on('publication', async function (ctx) {
             console.log('新消息', ctx);
-            const { data, info, tags, offset } = ctx
+            const { data, info, tags  } = ctx
             setNewMessage({ m: data, u: { id: info?.user || '', avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined } })
         }).on('error', function (err) {
             subCount.current++

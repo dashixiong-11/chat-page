@@ -39,7 +39,7 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
                             } else {
                                 return index2 === 1
                             }
-                        }).map((msg, index3) => { return getMessageView(msg) }
+                        }).map((msg ) => { return getMessageView(msg) }
                         )}
                     </div>
                 </div>

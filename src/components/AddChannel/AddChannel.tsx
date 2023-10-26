@@ -60,8 +60,8 @@ export const AddChannel = ({ visible, onClose }: PropTyep) => {
     }
     m[type](e.target.value)
   }
-  const onConfirm = async() => {
-    const res = await post('/miniprogram/api/create-channel', {
+  const onConfirm = async () => {
+    await post('/miniprogram/api/create-channel', {
       name: channelName,
       cn_name: cnChannelName,
       category: category,

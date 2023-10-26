@@ -4,7 +4,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = './node_modules/pdfjs-dist/build/pdf.worke
 
 export const pdf2png = (file: File) => {
     showLoading()
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve ) => {
         const name = file.name
         const reader = new FileReader();
         reader.onload = async (e: any) => {

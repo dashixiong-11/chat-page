@@ -1,4 +1,4 @@
-import { ReactElement, useCallback, useRef, Profiler } from 'react';
+import { ReactElement, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import './usePortal.scss';
 
