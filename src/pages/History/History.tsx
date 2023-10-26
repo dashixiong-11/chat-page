@@ -95,7 +95,7 @@ function History() {
 
 
     const t = useRef(0)
-    const onPageScroll: UIEventHandler<HTMLDivElement> = (event) => {
+    const onPageScroll: UIEventHandler<HTMLDivElement> = () => {
         clearTimeout(t.current)
         setTimeout(() => {
             jsControl.current = false
