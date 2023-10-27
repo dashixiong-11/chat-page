@@ -7,11 +7,13 @@ interface ResponseType<T> {
   message: string;
 }
 
+const url = import.meta.env.VITE_IP_VALUE;
+console.log(url);
 const service = axios.create({
   headers: {
     Authorization: `Bearer ${localStorage.getItem('token') || ''}`
   },
-  baseURL: '',
+  baseURL: url,
 })
 
 
