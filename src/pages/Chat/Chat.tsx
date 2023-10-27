@@ -78,8 +78,16 @@ function Chat() {
 
 
   const sendMessage = useCallback(async (message: string) => {
+    if (!message.trim()) {
+      setSearchValue('')
+      searchInputRef.current?.blur()
+      showToast({
+        message: '请输入内容',
+        duration: 1500
+      })
+      return
+    }
     const urls = await uploadFile()
-    if (!message.trim() && urls.length === 0) return
     showLoading()
     const messageList: MessageListType = {
       data_type: 'text',
@@ -95,12 +103,10 @@ function Chat() {
       Object.assign(messageList, { data_type: 'image', value: urls[0] })
     }
 
-
     const channelName = params.get('channel_name') || ''
     console.log('send message', messageList);
     ws?.publish(channelName, [messageList]).then(function () {
       console.log('发送成功');
-      clearBase64DataArray()
       setAiStatus('thinking')
     }, function (err) {
       setAiStatus('waitting')
@@ -110,6 +116,7 @@ function Chat() {
       })
       console.log('发送失败', err);
     }).finally(() => {
+      clearBase64DataArray()
       setSearchValue('')
       searchInputRef.current?.blur()
     })
@@ -118,6 +125,7 @@ function Chat() {
 
 
   useEffect(() => {
+    if(!message && base64DataArray.length === 0) return
     sendMessage(message)
   }, [message])
 
@@ -219,7 +227,7 @@ function Chat() {
                       } else {
                         return index2 === 1
                       }
-                    }).map((msg ) => { return getMessageView(msg) }
+                    }).map((msg) => { return getMessageView(msg) }
                     )}
                   </div>
                 }

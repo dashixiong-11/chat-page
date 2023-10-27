@@ -15,7 +15,7 @@ function _resolve(dir: string) {
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const ip = env.IP_VALUE
+  const ip = env.VITE_IP_VALUE
   return {
     plugins: [react()],
     css: {
@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // 接口地址代理
         '/miniprogram': {
-          target: `https://${ip}`,
+          target: ip,
           secure: false, // 如果是https接口，需要配置这个参数
           changeOrigin: true,
           bypass: (req, res, options) => {
@@ -45,12 +45,12 @@ export default defineConfig(({ mode }) => {
           rewrite: path => path.replace(/^\/miniprogram/, '/miniprogram')
         },
         '/im': {
-          target: `https://${ip}`, // 接口的域名
+          target: ip, // 接口的域名
           changeOrigin: true,
           secure: false, // 如果是https接口，需要配置这个参数
         },
         '/filesystem': {
-          target: `https://${ip}`,
+          target: ip,
           secure: false, // 如果是https接口，需要配置这个参数
           changeOrigin: true,
         },

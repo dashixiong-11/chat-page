@@ -12,7 +12,7 @@ type StoreType = {
     messageList: { list: Array<NewMessageType>, changeType: 'new' | 'history' },
     streamPosition: StreamPosition,
     initializeWs: (token: string, cb: () => void) => void,
-    initializeSub: (channelName: string, cb: () => void) => void,
+    initializeSub: (channelName: string, cb?: () => void) => void,
     setHistory: (message: NewMessageType) => void,
     getHistory: (cb?: () => void) => void,
     setSub: (s: Subscription | null) => void,
@@ -23,7 +23,10 @@ type StoreType = {
 }
 
 const useStore = create<StoreType>((set, get) => {
-    const wsIp = '192.168.1.3'
+    const wsIp = import.meta.env.VITE_WS_IP_VALUE
+    console.log('wsip', wsIp);
+
+
     // const maxReconnectAttempts = 3; // 最大重连尝试次数
     // const reconnectInterval = 3000; // 重连间隔（毫秒）
 
@@ -55,7 +58,7 @@ const useStore = create<StoreType>((set, get) => {
             get().modifyList(resArray)
         },
         initializeWs: (token: string, cb) => {
-            const ws = get().ws || new Centrifuge(`wss://${wsIp}/im/connection/websocket`, {
+            const ws = get().ws || new Centrifuge(`${wsIp}/im/connection/websocket`, {
                 getToken: () => new Promise(() => {
                     wx.miniProgram.reLaunch({
                         url: '/pages/login/login'
@@ -108,7 +111,7 @@ const useStore = create<StoreType>((set, get) => {
             ws.setToken(token)
             ws.connect()
         },
-        initializeSub: (channelName, cb) => {
+        initializeSub: (channelName, cb?) => {
             const ws = get().ws
             if (get().sub) {
                 get().removeSub()
@@ -122,9 +125,10 @@ const useStore = create<StoreType>((set, get) => {
             set({ sub: s })
             s.on('subscribed', async function (ctx) {
                 console.log('订阅成功', ctx.streamPosition);
+                console.log('cb', cb);
                 ctx.streamPosition && get().setStreamPosition(ctx.streamPosition)
                 const id = setTimeout(() => {
-                    cb()
+                    cb && cb()
                     clearTimeout(id)
                 }, 500)
             }).on('publication', async function (ctx) {

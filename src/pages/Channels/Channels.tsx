@@ -80,9 +80,11 @@ function Channels() {
     const { name, cn_name } = channel
     document.title = cn_name;
     const { workDir } = channel.chan_info
-    initializeSub(name, () => {
+    initializeSub(name)
+    const id = setTimeout(() => {
+      clearTimeout(id)
       navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
-    })
+    }, 500)
   }
 
   useEffect(() => {
