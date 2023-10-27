@@ -16,6 +16,7 @@ function _resolve(dir: string) {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const ip = env.VITE_IP_VALUE
+  console.log('ip',ip);
   return {
     plugins: [react()],
     css: {
