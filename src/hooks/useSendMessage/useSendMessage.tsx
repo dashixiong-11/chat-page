@@ -234,6 +234,7 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
         const file = e.target.files && e.target.files[0]
         if (!file) return
         const urls: any = await pdf2png(file)
+        console.log('urls', urls);
         setBase64DataArray(urls)
     }
 

@@ -7,7 +7,7 @@ export const jssdkAuthorize = () => {
         let signLink = ''
         const ua = navigator.userAgent.toLowerCase()
         console.log(ua);
-        wx.miniProgram.getEnv( res => {
+        wx.miniProgram.getEnv(res => {
             console.log(res);
         })
         if (/iphone|ipad|ipod/.test(ua)) {
@@ -19,7 +19,7 @@ export const jssdkAuthorize = () => {
             // alert('PC终端设备')
             signLink = location.href
         }
-        
+
         post('/miniprogram/api/jssdk', {
             url: signLink
         }).then((res: any) => {
@@ -32,7 +32,7 @@ export const jssdkAuthorize = () => {
                     nonceStr: nonceStr,
                     signature: signature,
                     jsApiList: ['chooseImage', 'startRecord', 'stopRecord', 'uploadImage',
-                        'previewImage','getLocalImgData',
+                        'previewImage', 'getLocalImgData', 'playVoice',
                         'downloadImage', 'uploadVoice', 'translateVoice']
                 });
                 wx.error(function (err: any) {

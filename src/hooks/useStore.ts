@@ -1,5 +1,6 @@
 import { StreamPosition, Subscription, Centrifuge } from 'centrifuge';
 import { showNotification } from '@/utils/loading';
+import { post } from '@/utils/server';
 import { create } from "zustand";
 
 type SubsetKeys<T> = { [K in keyof T]?: T[K] };
@@ -125,8 +126,8 @@ const useStore = create<StoreType>((set, get) => {
             set({ sub: s })
             s.on('subscribed', async function (ctx) {
                 console.log('订阅成功', ctx.streamPosition);
-                console.log('cb', cb);
                 ctx.streamPosition && get().setStreamPosition(ctx.streamPosition)
+                post('/im/api/clear-context', { offset: ctx.streamPosition ? ctx.streamPosition.offset : 0, channel: channelName })
                 const id = setTimeout(() => {
                     cb && cb()
                     clearTimeout(id)
@@ -144,6 +145,7 @@ const useStore = create<StoreType>((set, get) => {
         },
         removeSub: () => {
             console.log('取消订阅');
+
             get().sub?.unsubscribe();
             get().ws?.removeSubscription(get().sub)
         },

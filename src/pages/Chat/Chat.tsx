@@ -11,6 +11,13 @@ import { showLoading, showToast, hideLoading } from '@/utils/loading';
 import { dataURLtoBlob } from '@/utils/dataURLtoBlob';
 import './Chat.scss'
 
+type UploadToOpenAIResType = {
+  "url": string,
+  "assetPointer": string,
+  "height": string,
+  "width": string,
+  "sizeBytes": string
+}
 
 function Chat() {
   const [params] = useSearchParams()
@@ -44,67 +51,87 @@ function Chat() {
   }, [newMessage])
 
 
-  const attachImageToMessage = async (ids: string[]) => {
-    const res = await post<any>('/filesystem/api/attach', {
-      file_info_ids: ids
-    }).catch(err => { throw new Error(err) })
-    if (res.code === 0 && res.data && res.data.urls && Object.prototype.toString.call(res.data.urls) === '[object Array]') {
-      return res.data.urls
-    } else {
-      return []
-    }
+  const loadImageDimensions: (base64Image: string) => Promise<{ width: number, height: number }> = (base64Image) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = function (event: Event) {
+        const targetImg = event.currentTarget as HTMLImageElement;
+        resolve({
+          width: targetImg.width,
+          height: targetImg.height
+        });
+      };
+      img.onerror = function () {
+        reject(new Error('Error loading image.'));
+      };
+      img.src = base64Image;
+    });
   }
-  const uploadFile: () => Promise<string[]> = useCallback(async () => {
+
+  const uploadFile: () => Promise<UploadToOpenAIResType[]> = useCallback(async () => {
     if (!base64DataArray.length) { return [] }
     const formData = new FormData
-    base64DataArray.forEach(b => {
-      const blob = dataURLtoBlob(b.base)
-      if (blob) {
-        formData.append('files', blob)
+    for (let i = 0; i < base64DataArray.length; i++) {
+      try {
+        const blob = dataURLtoBlob(base64DataArray[i].base)
+        const dimensions = await loadImageDimensions(base64DataArray[i].base);
+        if (blob) {
+          formData.append('files', blob)
+          formData.append('widths', dimensions.width.toString())
+          formData.append('heights', dimensions.height.toString())
+        }
+      } catch (error: any) {
+        console.error(`Error processing image ${i + 1}:`, error);
+        return []
       }
-    })
-    const res = await post<string[]>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData).catch(err => {
-      throw new Error(err)
-    })
-    if (res.code === 0) {
-      const urls = await attachImageToMessage(res.data)
-      return urls
-    } else {
+    }
+
+    try {
+      const res = await post<string[]>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData)
+      console.log('res', res);
+      const urls = await post<{ urls: string[] }>('/filesystem/api/attach', { file_info_ids: res.data })
+      console.log('urls', urls);
+      const values = await post<{ data: UploadToOpenAIResType[] }>('/gpt2api/api/upload-to-openai', { urls: urls.data.urls })
+      return values.data.data
+    } catch (error: any) {
       return []
     }
   }, [base64DataArray])
 
 
 
-
   const sendMessage = useCallback(async (message: string) => {
+    searchInputRef.current?.blur()
     if (!message.trim()) {
       setSearchValue('')
-      searchInputRef.current?.blur()
       showToast({
         message: '请输入内容',
         duration: 1500
       })
       return
     }
-    const urls = await uploadFile()
+    const values = await uploadFile()
+    console.log('values', values);
+    if (!values) {
+      showToast({
+        message: '图片上传出错',
+        duration: 1500
+      })
+      return
+    }
     showLoading()
     const messageList: MessageListType = {
       data_type: 'text',
       value: message
     }
-    if (urls.length >= 1 && message) {
-      const valueArray: { data_type: 'text' | 'image', value: string }[] = [{ data_type: 'text', value: message }]
-      urls.forEach((url: string) => {
-        valueArray.push({ data_type: 'image', value: url })
+    if (values.length >= 1) {
+      const valueArray: { data_type: 'text' | 'image', value: string | UploadToOpenAIResType }[] = [{ data_type: 'text', value: message }]
+      values.forEach((value) => {
+        valueArray.push({ data_type: 'image', value: value })
       })
-      Object.assign(messageList, { data_type: 'multimodal_text', value: [{ data_type: 'text', value: message }, ...urls.map(url => ({ data_type: 'image', value: url }))] })
-    } else if (urls.length === 1) {
-      Object.assign(messageList, { data_type: 'image', value: urls[0] })
+      Object.assign(messageList, { data_type: 'multimodal_text', value: [{ data_type: 'text', value: message }, ...values.map(value => ({ data_type: 'image', value: value }))] })
     }
-
     const channelName = params.get('channel_name') || ''
-    console.log('send message', messageList);
     ws?.publish(channelName, [messageList]).then(function () {
       console.log('发送成功');
       setAiStatus('thinking')
@@ -118,14 +145,13 @@ function Chat() {
     }).finally(() => {
       clearBase64DataArray()
       setSearchValue('')
-      searchInputRef.current?.blur()
     })
   }, [base64DataArray])
 
 
 
   useEffect(() => {
-    if(!message && base64DataArray.length === 0) return
+    if (!message && base64DataArray.length === 0) return
     sendMessage(message)
   }, [message])
 
@@ -141,9 +167,17 @@ function Chat() {
   }
 
 
+  const audio = useRef<HTMLAudioElement | null>(null)
   const playVoice = (msg: MessageListType | undefined) => {
     if (!msg || !msg.value) return
     console.log(msg);
+    if (audio.current) {
+      audio.current.pause()
+      audio.current = null
+    } else {
+      audio.current = new Audio((msg.value as string));
+      audio.current.play();
+    }
   }
 
   const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
@@ -191,10 +225,10 @@ function Chat() {
       <div className="search-res">
         {result && result[0] && result[0].value &&
           <div className='res-block'>
-            {
+            {/* {
               result.find(rf => rf.data_type === 'voice') &&
               <div className='voice-btn' onClick={() => playVoice(result.find(rf => rf.data_type === 'voice'))}>点击播放语音</div>
-            }
+            } */}
             {
               result[1]?.value ?
                 <Markdown>{(result[1]?.value as string)}</Markdown> :
