@@ -167,18 +167,6 @@ function Chat() {
   }
 
 
-  const audio = useRef<HTMLAudioElement | null>(null)
-  const playVoice = (msg: MessageListType | undefined) => {
-    if (!msg || !msg.value) return
-    console.log(msg);
-    if (audio.current) {
-      audio.current.pause()
-      audio.current = null
-    } else {
-      audio.current = new Audio((msg.value as string));
-      audio.current.play();
-    }
-  }
 
   const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
     if (e.code === 'Enter') {
@@ -225,10 +213,6 @@ function Chat() {
       <div className="search-res">
         {result && result[0] && result[0].value &&
           <div className='res-block'>
-            {/* {
-              result.find(rf => rf.data_type === 'voice') &&
-              <div className='voice-btn' onClick={() => playVoice(result.find(rf => rf.data_type === 'voice'))}>点击播放语音</div>
-            } */}
             {
               result[1]?.value ?
                 <Markdown>{(result[1]?.value as string)}</Markdown> :
