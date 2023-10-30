@@ -22,7 +22,7 @@ function show(child: ReactNode) {
 }
 function hide() {
     const findDiv = document.querySelector('#popup-wrapper')
-    if (findDiv) {
+    if (findDiv && document.body.contains(findDiv)) {
         document.body.removeChild(findDiv);
     }
 }

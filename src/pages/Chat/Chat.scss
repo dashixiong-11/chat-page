@@ -64,18 +64,6 @@
         .main-header {
             padding-bottom: 1em;
 
-            .search {
-                display: flex;
-                align-items: center;
-                padding: 14px 16px;
-                border: 2px solid #333;
-                border-radius: 8px;
-
-                input {
-                    flex: 1;
-                }
-            }
-
             .imgs {
                 display: flex;
                 padding: 1em;
@@ -143,7 +131,7 @@
                 word-wrap: break-word;
                 margin-bottom: 1em;
 
-                .voice-btn {
+                .cp-btn {
                     text-align: end;
                 }
             }

@@ -16,7 +16,6 @@
     "centrifuge": "^5.0.0",
     "install": "^0.13.0",
     "jweixin-1.6.0": "^1.0.0",
-    "lottie-web": "^5.12.2",
     "pdfjs-dist": "^3.11.174",
     "pinyin-pro": "^3.17.0",
     "react": "^18.2.0",
@@ -27,6 +26,7 @@
     "react-virtualized-auto-sizer": "^1.0.20",
     "react-window": "^1.8.9",
     "react-window-infinite-loader": "^1.0.9",
+    "svga": "^2.1.0",
     "zustand": "^4.4.4"
   },
   "devDependencies": {

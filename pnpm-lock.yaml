@@ -23,9 +23,6 @@ dependencies:
   jweixin-1.6.0:
     specifier: ^1.0.0
     version: 1.0.0
-  lottie-web:
-    specifier: ^5.12.2
-    version: 5.12.2
   pdfjs-dist:
     specifier: ^3.11.174
     version: 3.11.174
@@ -56,6 +53,9 @@ dependencies:
   react-window-infinite-loader:
     specifier: ^1.0.9
     version: 1.0.9(react-dom@18.2.0)(react@18.2.0)
+  svga:
+    specifier: ^2.1.0
+    version: 2.1.0
   zustand:
     specifier: ^4.4.4
     version: 4.4.4(@types/react@18.2.15)(react@18.2.0)
@@ -2044,10 +2044,6 @@ packages:
       js-tokens: 4.0.0
     dev: false
 
-  /lottie-web@5.12.2:
-    resolution: {integrity: sha512-uvhvYPC8kGPjXT3MyKMrL3JitEAmDMp30lVkuq/590Mw9ok6pWcFCwXJveo0t5uqYw1UREQHofD+jVpdjBv8wg==}
-    dev: false
-
   /lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
     dependencies:
@@ -2909,6 +2905,10 @@ packages:
     dependencies:
       has-flag: 4.0.0
     dev: true
+
+  /svga@2.1.0:
+    resolution: {integrity: sha512-qmg59XemXBIEr1NeJYkXaKQeIG0LOvbZBEmUtP3bzGFM+hsmKBMeOilUQqySr4ZLK30IX1bdGt93pDSoTyhQZw==}
+    dev: false
 
   /tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}

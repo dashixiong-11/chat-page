@@ -5,10 +5,10 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler } from 'react'
+import { useState, useRef, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler } from 'react'
 import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
-import lottie from 'lottie-web';
+import { Parser, Player, DB } from 'svga'
 import { showToast, showLoading, hideLoading } from '@/utils/loading'
 import wx from 'jweixin-1.6.0'
 import './useSendMessage.scss'
@@ -185,28 +185,53 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
     }
 
 
+    const player = useRef<Player | null>(null)
+    const parser = useRef<Parser | null>(null)
     useEffect(() => {
-        const container = document.querySelector('#lottie-container');
-        const canvas = document.querySelector('#lottie-container canvas');
-        if (!container || canvas) return
-        lottie.loadAnimation({
-            container: container!,
-            renderer: 'canvas',       // 渲染方式 ('svg'/'canvas'/'html')
-            loop: true,
-            autoplay: true,
-            path: './src/assets/animation/ball/ball.json'
-        });
+        (async () => {
+            const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+            if (!canvas) return
+            player.current = new Player({
+                container: canvas,
+            })
+            try {
+                const url = './src/assets/animation/ball.svga'
+                const db = new DB()
+                let svga = await db.find(url)
+                if (!svga) {
+                    // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
+                    parser.current = new Parser({ isDisableImageBitmapShim: true })
+                    svga = await parser.current.load(url)
+                    await db.insert(url, svga)
+                }
+                if (!player.current) return
+                await player.current.mount(svga)
+                player.current.start()
+                setTimeout(() => {
+                    player.current && player.current.pause()
+                }, 100)
+
+
+            } catch (error) {
+                showToast({
+                    message: '动画加载失败',
+                    duration: 1500
+                })
+            }
+        })()
         return () => {
-            lottie.destroy()
             setRecordStatus('off')
+
+            parser.current && parser.current.destroy()
+            player.current && player.current.destroy()
         }
     }, [])
 
     useEffect(() => {
         if (aiStatus === 'thinking') {
-            lottie.setSpeed(3)
+            player.current && player.current.start()
         } else {
-            lottie.setSpeed(1)
+            player.current && player.current.pause()
         }
     }, [aiStatus])
 
@@ -231,10 +256,24 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
     }
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
-        const file = e.target.files && e.target.files[0]
-        if (!file) return
-        const urls: any = await pdf2png(file)
-        console.log('urls', urls);
+        const files = e.target.files && e.target.files
+        if (!files) return
+        for (const file of files) {
+            const fileType = file.type;
+
+            // 检查MIME类型
+            if (fileType.startsWith('image/')) {
+                console.log('这是一个图片文件', file);
+                // 这里处理图片文件
+            } else if (fileType === 'application/pdf') {
+                console.log('这是一个PDF文件', file);
+                // 这里处理PDF文件
+            } else {
+                console.log('未知文件类型', file);
+                // 这里处理未知文件类型
+            }
+        }
+        const urls: any = await pdf2png(files[0])
         setBase64DataArray(urls)
     }
 
@@ -243,11 +282,11 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
         <div className='send-message-action-bar'>
             <>
                 <label className="upload-file">
-                    <input id='file-input' type="file" onChange={fileChangeHandle} />
+                    <input id='file-input' type="file" accept="image/*,application/pdf" onChange={fileChangeHandle} />
                     <img className='icon' src={folder} alt="" />
                     <span>文件</span>
                 </label>
-                <div className={`send-voice ${aiStatus}`} onClick={start} id="lottie-container"></div>
+                <canvas className={`send-voice ${aiStatus}`} onClick={start} id="canvas"></canvas>
                 <div className="upload-img" onClick={chooseImg}>
                     <img className='icon' src={pic} alt="" />
                     <span>图片</span>

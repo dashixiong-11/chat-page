@@ -2,9 +2,8 @@ import { useEffect, useState, ChangeEvent, useCallback, useRef } from 'react'
 import { post } from '@/utils/server';
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useStore } from '@/hooks/useStore';
-import { useSendMessage } from '@/hooks/useSendMessage/useSendMessage';
+import { useSearch } from '@/hooks/useSearch/useSearch';
 import history from '@/assets/icons/history.svg'
-import ai_avatar from '@/assets/icons/ai_avatar.png'
 import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
 import { showLoading, showToast, hideLoading } from '@/utils/loading';
@@ -24,28 +23,28 @@ function Chat() {
   const workDir = params.get('workDir')
   const navigate = useNavigate()
   const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
-  const { view, message, recordStatus, base64DataArray, removeBase64Data, clearBase64DataArray } = useSendMessage({ aiStatus: aiStatus })
+  const { view, message, recordStatus, base64DataArray, removeBase64Data, clearBase64DataArray } = useSearch()
   const [searchValue, setSearchValue] = useState('')
   const newMessage = useStore((state) => state.newMessage)
-  const [historyList, setHistoryList] = useState<NewMessageType[]>([])
   const [result, setResult] = useState<MessageListType[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
   const { ws } = useStore()
 
   useEffect(() => {
     if (!newMessage || !newMessage.m) return
-    const copy = [...historyList]
-    if (copy.some(item => item.u?.offset === newMessage.u?.offset)) {
-      const c = copy.map(item => item.u?.offset === newMessage.u?.offset ? newMessage : item)
-      setHistoryList([...c])
-      setAiStatus('waitting')
-      hideLoading()
-    } else {
-      setHistoryList([...copy, newMessage])
-    }
+    // const copy = [...historyList]
+    // if (copy.some(item => item.u?.offset === newMessage.u?.offset)) {
+    //   const c = copy.map(item => item.u?.offset === newMessage.u?.offset ? newMessage : item)
+    //   setHistoryList([...c])
+    //   setAiStatus('waitting')
+    //   hideLoading()
+    // } else {
+    //   setHistoryList([...copy, newMessage])
+    // }
 
     if (newMessage.u?.id === localStorage.getItem('id')) {
       setResult(newMessage.m)
+      hideLoading()
     }
     console.log(newMessage, 'newMessage');
   }, [newMessage])
@@ -168,17 +167,6 @@ function Chat() {
 
 
   const audio = useRef<HTMLAudioElement | null>(null)
-  const playVoice = (msg: MessageListType | undefined) => {
-    if (!msg || !msg.value) return
-    console.log(msg);
-    if (audio.current) {
-      audio.current.pause()
-      audio.current = null
-    } else {
-      audio.current = new Audio((msg.value as string));
-      audio.current.play();
-    }
-  }
 
   const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
     if (e.code === 'Enter') {
@@ -186,6 +174,17 @@ function Chat() {
     }
   }
 
+  const copy = (text: string) => {
+    navigator.clipboard.writeText(text).then(function () {
+      showToast({
+        message:'已复制',
+        duration: 1500
+      })
+
+    }).catch(function (err) {
+      console.error('无法复制文本: ', err);
+    });
+  }
 
   const getMessageView = (message: MessageListType) => {
     if (message.data_type === 'text') {
@@ -202,13 +201,14 @@ function Chat() {
     </div>
     <main style={{ height: '100vh' }} >
       <div className="main-header">
-        <div className="search">
+        {view}
+        {/* <div className="search">
           <form action="." style={{ flex: 1 }} onKeyDown={keyDownHandle}>
             <input type="search" ref={searchInputRef} className="search-ipt" value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
             <input type="text" style={{ display: 'none' }} />
           </form>
           <span style={{ fontSize: '12px', fontWeight: 'bold' }} onClick={() => sendMessage(searchValue)}>搜索</span>
-        </div>
+        </div> */}
         {
           base64DataArray.length > 0 &&
           <div className="imgs">
@@ -223,22 +223,21 @@ function Chat() {
         }
       </div>
       <div className="search-res">
-        {result && result[0] && result[0].value &&
-          <div className='res-block'>
-            {/* {
+        {result && result[1]?.value &&
+          result.filter(f => f.data_type === 'text').map(res =>
+            <div className='res-block'>
+              {/* {
               result.find(rf => rf.data_type === 'voice') &&
               <div className='voice-btn' onClick={() => playVoice(result.find(rf => rf.data_type === 'voice'))}>点击播放语音</div>
             } */}
-            {
-              result[1]?.value ?
-                <Markdown>{(result[1]?.value as string)}</Markdown> :
-                <span>思考中...</span>
-            }
-          </div>
+              {res?.value && <div className='cp-btn' onClick={() => copy((res?.value as string))}>复制</div>}
+              {res?.value && <Markdown>{(res?.value as string)}</Markdown>}
+            </div>
+          )
         }
 
       </div>
-      <div className={`message-action ${(recordStatus === 'recording' || recordStatus === 'translation') ? 'opa0' : ''}`} >
+      {/* <div className={`message-action ${(recordStatus === 'recording' || recordStatus === 'translation') ? 'opa0' : ''}`} >
         <div className="messages" style={{ height: `${historyList.length > 0 ? '230px' : '0'}` }}>
           <ul>
             {historyList.map((item, index) =>
@@ -270,7 +269,7 @@ function Chat() {
           </ul>
         </div>
         {view}
-      </div>
+      </div> */}
 
     </main>
   </div>
