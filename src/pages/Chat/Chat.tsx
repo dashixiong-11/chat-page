@@ -42,6 +42,8 @@ function Chat() {
 
     if (newMessage.u?.id === localStorage.getItem('id')) {
       setResult(newMessage.m)
+    }
+    if(newMessage.m[1]) {
       hideLoading()
     }
     console.log(newMessage, 'newMessage');
