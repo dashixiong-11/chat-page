@@ -1,5 +1,11 @@
 import * as  pdfjs from 'pdfjs-dist';
-pdfjs.GlobalWorkerOptions.workerSrc = './node_modules/pdfjs-dist/build/pdf.worker.js';
+import * as pdfjsWorkerMin from 'pdfjs-dist/build/pdf.worker.min?url';
+console.log('pdfjsWorkerMin.default', pdfjsWorkerMin.default);
+
+
+pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerMin.default;
+
+
 
 export const pdf2png = (file: File) => {
     return new Promise((resolve) => {

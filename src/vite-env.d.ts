@@ -25,8 +25,10 @@ interface wx {
 declare module 'jweixin-1.6.0' {
   export default wx
 }
-declare module 'pdfjs-dist/webpack'
 
+declare module 'pdfjs-dist/build/pdf.worker.js'
+declare module 'pdfjs-dist/build/pdf.worker.entry'
+declare module 'pdfjs-dist/lib/pdf.worker.entry'
 
 type Channel = { cn_name: string, name: string, chan_info: { type: string, workDir?: string }, }
 type Item = { id: number, name: string, chan_info: Record<string, string>, description: string, is_creatable: Boolean, root_id: number, channels?: Channel[], children?: Item[] }
@@ -49,7 +51,7 @@ type NewMessageType = {
 type PublicationsType = {
   data: MessageListType[],
   offset: number,
-  info:{user:string},
+  info: { user: string },
   tags: {
     seed: string,
     nickname: string,
