@@ -1,4 +1,4 @@
-import { useEffect, useState, ChangeEvent, useCallback, useRef } from 'react'
+import { useEffect, useState,  useCallback, useRef } from 'react'
 import { post } from '@/utils/server';
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useStore } from '@/hooks/useStore';
@@ -22,9 +22,7 @@ function Chat() {
   const [params] = useSearchParams()
   const workDir = params.get('workDir')
   const navigate = useNavigate()
-  const [aiStatus, setAiStatus] = useState<'waitting' | 'thinking'>('waitting')
-  const { view, message, recordStatus, base64DataArray, removeBase64Data, clearBase64DataArray } = useSearch()
-  const [searchValue, setSearchValue] = useState('')
+  const { view, message,  base64DataArray, removeBase64Data, clearBase64DataArray } = useSearch()
   const newMessage = useStore((state) => state.newMessage)
   const [result, setResult] = useState<MessageListType[]>([])
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -102,7 +100,6 @@ function Chat() {
   const sendMessage = useCallback(async (message: string) => {
     searchInputRef.current?.blur()
     if (!message.trim()) {
-      setSearchValue('')
       showToast({
         message: '请输入内容',
         duration: 1500
@@ -133,9 +130,7 @@ function Chat() {
     const channelName = params.get('channel_name') || ''
     ws?.publish(channelName, [messageList]).then(function () {
       console.log('发送成功');
-      setAiStatus('thinking')
     }, function (err) {
-      setAiStatus('waitting')
       showToast({
         message: '发送失败',
         duration: 1500
@@ -143,7 +138,6 @@ function Chat() {
       console.log('发送失败', err);
     }).finally(() => {
       clearBase64DataArray()
-      setSearchValue('')
     })
   }, [base64DataArray])
 
@@ -156,23 +150,12 @@ function Chat() {
 
 
 
-  const onInput = (e: ChangeEvent<HTMLInputElement>,) => {
-    setSearchValue(e.target.value)
-  }
-
 
   const to = (path: string) => {
     navigate(path)
   }
 
 
-  const audio = useRef<HTMLAudioElement | null>(null)
-
-  const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
-    if (e.code === 'Enter') {
-      sendMessage(searchValue)
-    }
-  }
 
   const copy = (text: string) => {
     navigator.clipboard.writeText(text).then(function () {
@@ -184,15 +167,6 @@ function Chat() {
     }).catch(function (err) {
       console.error('无法复制文本: ', err);
     });
-  }
-
-  const getMessageView = (message: MessageListType) => {
-    if (message.data_type === 'text') {
-      return <span> {message.value}</span>
-    } else if (message.data_type === 'multimodal_text') {
-      return (message.value as { data_type: 'text' | 'image', value: string }[])
-        .map((m, index) => <span key={index + '-' + m.data_type}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
-    }
   }
 
   return <div className="chat"  >
