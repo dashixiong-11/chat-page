@@ -6,7 +6,6 @@ export const jssdkAuthorize = () => {
     return new Promise((resolve, reject) => {
         let signLink = ''
         const ua = navigator.userAgent.toLowerCase()
-        console.log(ua);
         wx.miniProgram.getEnv(res => {
             console.log(res);
         })
@@ -35,8 +34,7 @@ export const jssdkAuthorize = () => {
                         'previewImage', 'getLocalImgData', 'playVoice',
                         'downloadImage', 'uploadVoice', 'translateVoice']
                 });
-                wx.error(function (err: any) {
-                    console.log(err);
+                wx.error(function () {
                     reject('授权失败')
                     showToast({
                         message: '未获取麦克风权限',

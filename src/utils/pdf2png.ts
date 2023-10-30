@@ -1,6 +1,5 @@
 import * as  pdfjs from 'pdfjs-dist';
 import * as pdfjsWorkerMin from 'pdfjs-dist/build/pdf.worker.min?url';
-console.log('pdfjsWorkerMin.default', pdfjsWorkerMin.default);
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerMin.default;

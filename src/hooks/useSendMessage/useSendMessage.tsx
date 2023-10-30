@@ -258,21 +258,6 @@ export function useSendMessage({ aiStatus }: { aiStatus: 'thinking' | 'waitting'
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
         const files = e.target.files && e.target.files
         if (!files) return
-        for (const file of files) {
-            const fileType = file.type;
-
-            // 检查MIME类型
-            if (fileType.startsWith('image/')) {
-                console.log('这是一个图片文件', file);
-                // 这里处理图片文件
-            } else if (fileType === 'application/pdf') {
-                console.log('这是一个PDF文件', file);
-                // 这里处理PDF文件
-            } else {
-                console.log('未知文件类型', file);
-                // 这里处理未知文件类型
-            }
-        }
         const urls: any = await pdf2png(files[0])
         setBase64DataArray(urls)
     }

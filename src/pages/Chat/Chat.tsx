@@ -80,7 +80,6 @@ function Chat() {
           formData.append('heights', dimensions.height.toString())
         }
       } catch (error: any) {
-        console.error(`Error processing image ${i + 1}:`, error);
         return []
       }
     }
