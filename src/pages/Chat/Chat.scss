@@ -121,7 +121,7 @@
         .search-res {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 350px;
+            padding-bottom: 1em;
 
             .res-block {
                 border-radius: 8px;
@@ -132,7 +132,9 @@
                 margin-bottom: 1em;
 
                 .cp-btn {
-                    text-align: end;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
                 }
             }
 

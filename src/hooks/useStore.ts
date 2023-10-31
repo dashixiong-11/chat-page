@@ -15,7 +15,7 @@ type StoreType = {
     initializeWs: (token: string, cb: () => void) => void,
     initializeSub: (channelName: string, cb?: () => void) => void,
     setHistory: (message: NewMessageType) => void,
-    getHistory: (cb?: () => void) => void,
+    getHistory: (offset?: number, cb?: () => void) => void,
     setSub: (s: Subscription | null) => void,
     setNewMessage: (message: NewMessageType) => void,
     modifyList: (message: NewMessageType | NewMessageType[]) => void,
@@ -41,17 +41,22 @@ const useStore = create<StoreType>((set, get) => {
         streamPosition: { epoch: "", offset: 0 },
         setSub: (s) => { set(state => ({ ...state, sub: s })) },
         setHistory: (message) => { set((state) => ({ ...state, history: [message, ...state.history] })) },
-        getHistory: async (cb) => {
+        getHistory: async (offset?, cb?) => {
             const sub = get().sub;
             const sp = get().streamPosition;
+            if (offset) {
+                sp.offset = offset
+            }
             if (sp.offset === 1) {
                 cb && cb()
                 return
             }
             const resp = await sub?.history({
                 since: sp,
-                limit: 50, reverse: true
+                limit: 15, reverse: true
             });
+            console.log('offset',offset);
+            console.log('sp',sp);
             cb && cb()
             if (!resp) return
             const publications: any = resp.publications;
@@ -127,14 +132,16 @@ const useStore = create<StoreType>((set, get) => {
             s.on('subscribed', async function (ctx) {
                 console.log('订阅成功', ctx.streamPosition);
                 ctx.streamPosition && get().setStreamPosition(ctx.streamPosition)
-                post('/im/api/clear-context', { offset: ctx.streamPosition ? ctx.streamPosition.offset : 0, channel: channelName })
+                post<any,{offset:number,channel:string}>('/im/api/clear-context', { offset: ctx.streamPosition ? ctx.streamPosition.offset : 0, channel: channelName })
                 const id = setTimeout(() => {
                     cb && cb()
                     clearTimeout(id)
                 }, 500)
             }).on('publication', async function (ctx) {
                 console.log('新消息', ctx);
-                const { data, info, tags } = ctx
+                const { data, info, tags, offset } = ctx
+                const sp = JSON.parse(JSON.stringify(get().streamPosition))
+                get().setStreamPosition(Object.assign(sp, { offset: offset }))
                 const msg = { m: data, u: { id: info?.user || '', avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined } }
                 get().setNewMessage(msg)
                 get().modifyList(msg)

@@ -41,7 +41,7 @@ service.interceptors.response.use((response) => {
 })
 
 
-function post<T>(url: string, param = {}): Promise<ResponseType<T>> {
+function post<T, P>(url: string, param: P): Promise<ResponseType<T>> {
   return new Promise((resolve, reject) => {
     service({
       method: 'POST',
@@ -52,9 +52,13 @@ function post<T>(url: string, param = {}): Promise<ResponseType<T>> {
 
 }
 
-function get<T>(url: string, param = {}): Promise<ResponseType<T>> {
+function get<T, P>(url: string, param?: P): Promise<ResponseType<T>> {
   return new Promise((resolve, reject) => {
-    service.get(url, param).then((response: AxiosResponse<ResponseType<T>>) => {
+    service({
+      method: 'GET',
+      url,
+      params: param,
+    }).then((response: AxiosResponse<ResponseType<T>>) => {
       resolve(response.data)
     }).catch(error => reject(error))
   })

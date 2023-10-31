@@ -10,6 +10,10 @@ import './useAddChannel.scss'
 
 
 
+type P = {
+  name: string, cn_name: string, category_id: number, chan_info: { patient_name: string, patient_age: number, patient_gender: string } | {},
+}
+
 const Model = ({ cb, remove, item }: { cb: () => void, remove: () => void, item: Item }) => {
   const { showToast } = useShowToast()
   const [name, setName] = useState('')
@@ -42,7 +46,7 @@ const Model = ({ cb, remove, item }: { cb: () => void, remove: () => void, item:
   }
   const hide = () => { remove() }
   const onConfirm = async () => {
-    const res = await post('/miniprogram/api/channel/' + item.root_id, {
+    const res = await post<any, P>('/miniprogram/api/channel/' + item.root_id, {
       name: channelName,
       cn_name: cnChannelName,
       category_id: item.id,

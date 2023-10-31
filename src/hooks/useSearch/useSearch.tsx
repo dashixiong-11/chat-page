@@ -8,7 +8,7 @@ import usePortal from "../usePortal/usePortal"
 import { useState, useRef, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler, ChangeEvent } from 'react'
 import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
-import { useSearchParams  } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { useStore } from '@/hooks/useStore';
 import { Parser, Player, DB } from 'svga'
 import { showToast, showLoading, hideLoading } from '@/utils/loading'
@@ -19,6 +19,9 @@ import wx from 'jweixin-1.6.0'
 import './useSearch.scss'
 
 type RecordStatus = 'recording' | 'translation' | 'off' | 'done'
+
+const ua = navigator.userAgent.toLowerCase(); //判断是否是苹果手机，是则是true
+const isIos = (ua.indexOf('iphone') != -1) || (ua.indexOf('ipad') != -1);
 
 const RecordBall = ({ status, setStatus, setText }: {
     status: RecordStatus,
@@ -136,15 +139,19 @@ export function useSearch() {
     const [recordStatus, setRecordStatus] = useState<RecordStatus>('done')
     const [message, setMessage] = useState('')
     const [base64DataArray, setBase64DataArray] = useState<Base64DataType[]>([])
+    const [imageIds, setImageIds] = useState<string[]>([])
     const onInput = (e: ChangeEvent<HTMLTextAreaElement>,) => {
         adjustHeight()
         setSearchValue(e.target.value)
     }
     const { ws } = useStore()
 
-    const removeBase64Data = (id: string) => {
-        const updatedItems = base64DataArray.filter(item => item.id !== id);
+    //后端不给整id 只能靠index删除 可能会出错
+    const removeBase64Data: (selectedIndex: number) => void = (selectedIndex) => {
+        const updatedItems = base64DataArray.filter((_, index) => index !== selectedIndex);
+        const updatedImageIds = imageIds.filter((_, index) => index !== selectedIndex);
         setBase64DataArray(updatedItems);
+        setImageIds(updatedImageIds);
     }
     const clearBase64DataArray = () => setBase64DataArray([])
 
@@ -244,7 +251,10 @@ export function useSearch() {
             const promises = Array.from(files).map(file => pdf2png(file));
             const baseArrays = await Promise.all(promises);
             const baseArray: any[] = baseArrays.flat(); // 如果pdf2png返回数组，则需要扁平化
+            const ids = await uploadFile(baseArray)
+            setImageIds(ids)
             setBase64DataArray(baseArray);
+
             hideLoading()
         } catch (error) {
             showToast({
@@ -278,13 +288,13 @@ export function useSearch() {
         });
     }
 
-    const uploadFile: () => Promise<UploadToOpenAIResType[]> = useCallback(async () => {
-        if (!base64DataArray.length) { return [] }
+    const uploadFile: (bs64: Base64DataType[]) => Promise<string[]> = useCallback(async (bs64) => {
+        if (!bs64.length) { return [] }
         const formData = new FormData
-        for (let i = 0; i < base64DataArray.length; i++) {
+        for (let i = 0; i < bs64.length; i++) {
             try {
-                const blob = dataURLtoBlob(base64DataArray[i].base)
-                const dimensions = await loadImageDimensions(base64DataArray[i].base);
+                const blob = dataURLtoBlob(bs64[i].base)
+                const dimensions = await loadImageDimensions(bs64[i].base);
                 if (blob) {
                     formData.append('files', blob)
                     formData.append('widths', dimensions.width.toString())
@@ -297,16 +307,25 @@ export function useSearch() {
         }
 
         try {
-            const res = await post<string[]>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData)
+            const res = await post<string[], FormData>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData)
             console.log('res', res);
-            const urls = await post<{ urls: string[] }>('/filesystem/api/attach', { file_info_ids: res.data })
+            return res.data
+        } catch (error) {
+            return []
+        }
+    }, [base64DataArray])
+
+    const attchImage: () => Promise<UploadToOpenAIResType[]> = useCallback(async () => {
+        if (imageIds.length === 0) return []
+        try {
+            const urls = await post<{ urls: string[] }, { file_info_ids: string[] }>('/filesystem/api/attach', { file_info_ids: imageIds })
             console.log('urls', urls);
-            const values = await post<{ data: UploadToOpenAIResType[] }>('/gpt2api/api/upload-to-openai', { urls: urls.data.urls })
+            const values = await post<{ data: UploadToOpenAIResType[] }, { urls: string[] }>('/gpt2api/api/upload-to-openai', { urls: urls.data.urls })
             return values.data.data
         } catch (error: any) {
             return []
         }
-    }, [base64DataArray])
+    }, [imageIds])
 
 
     const sendMessage = useCallback(async (message: string) => {
@@ -319,15 +338,7 @@ export function useSearch() {
             })
             return
         }
-        const values = await uploadFile()
-        console.log('values', values);
-        if (!values) {
-            showToast({
-                message: '图片上传出错',
-                duration: 1500
-            })
-            return
-        }
+        const values = await attchImage()
         showLoading()
         const messageList: MessageListType = {
             data_type: 'text',
@@ -366,7 +377,7 @@ export function useSearch() {
         <div className='search-bar'>
             <>
                 <label className="upload-file">
-                    <input id='file-input' type="file" multiple onChange={fileChangeHandle} />
+                    {isIos ? <input id='file-input' type="file" multiple onChange={fileChangeHandle} /> : <input id='file-input' type="file" multiple onChange={fileChangeHandle} capture="environment" />}
                     <img className='icon' src={folder} alt="" />
                 </label>
                 <div className="search-wrapper">
@@ -391,6 +402,5 @@ export function useSearch() {
         recordStatus,
         base64DataArray,
         removeBase64Data,
-        clearBase64DataArray
     }
 }

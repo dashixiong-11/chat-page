@@ -2,6 +2,9 @@ import { post } from "./server"
 import { showToast } from "./loading"
 import wx from 'jweixin-1.6.0'
 
+type JSSDKRes = {
+    appId: string, timestamp: string, nonceStr: string, signature: string
+}
 export const jssdkAuthorize = () => {
     return new Promise((resolve, reject) => {
         let signLink = ''
@@ -19,9 +22,9 @@ export const jssdkAuthorize = () => {
             signLink = location.href
         }
 
-        post('/miniprogram/api/jssdk', {
+        post<JSSDKRes, { url: string }>('/miniprogram/api/jssdk', {
             url: signLink
-        }).then((res: any) => {
+        }).then((res) => {
             if (res.code === 0 && res.data) {
                 const { appId = '', timestamp = '', nonceStr = '', signature = '' } = res.data
                 wx.config({

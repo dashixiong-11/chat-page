@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import right from '@/assets/icons/right.svg'
 import plus from '@/assets/icons/plus.svg'
 import add_fill from '@/assets/icons/add_fill.svg'
-import { useEffect, useState, } from 'react'
+import { useEffect, useState, useLayoutEffect } from 'react'
 import { useAddChannel } from '@/hooks/useAddChannel/useAddChannel'
 import { useStore } from '@/hooks/useStore';
 import './Channels.scss'
@@ -63,7 +63,7 @@ function Channels() {
   const navigate = useNavigate()
   const getChannel = async () => {
     if (!channelId) return
-    const res = await get<Item>('/miniprogram/api/channel' + `/${channelId}`).catch(err => { throw new Error(err) })
+    const res = await get<Item, any>('/miniprogram/api/channel' + `/${channelId}`).catch(err => { throw new Error(err) })
     console.log(res);
     if (res.code === 0 && res.data) {
       const result = res.data
@@ -73,6 +73,16 @@ function Channels() {
   const { show } = useAddChannel({
     cb: getChannel,
   })
+
+  useLayoutEffect(() => {
+    if ((!channel?.children || channel.children.length === 0) && channel?.channels && channel.channels.length === 1) {
+      const channelItem = channel.channels[0]
+      const { workDir } = channelItem.chan_info
+      initializeSub(channelItem.name)
+      navigate(`/chat?channel_name=${channelItem.name}&cn_name=${channelItem.cn_name}` + (workDir ? `&workDir=${workDir}` : ''), { replace: true })
+    }
+
+  }, [channel])
 
 
 

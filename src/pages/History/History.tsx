@@ -34,12 +34,13 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
                     <span className='name'>ai</span>
                     <div className="message ai-block">
                         {item.m && item.m.filter((_, index2) => {
-                            if (item.u?.id === localStorage.getItem('id')) {
-                                return index2 !== 1 && index2 !== 0
-                            } else {
-                                return index2 === 1
-                            }
-                        }).map((msg ) => { return getMessageView(msg) }
+                            return index2 === 1
+                            // if (item.u?.id === localStorage.getItem('id')) {
+                            //     return index2 !== 1 && index2 !== 0
+                            // } else {
+                            //     return index2 === 1
+                            // }
+                        }).map((msg) => { return getMessageView(msg) }
                         )}
                     </div>
                 </div>
@@ -53,6 +54,7 @@ function History() {
     const divend = useRef<HTMLDivElement>(null)
     const listDivRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsloading] = useState(false)
+    const [currentOffset, setCurrentOffset] = useState<number | undefined>(0)
     const jsControl = useRef(false)
     useEffect(() => {
         if (!divend.current) return
@@ -62,6 +64,11 @@ function History() {
     }, [divend.current])
 
     useEffect(() => {
+        if (messageList.list.length > 0) {
+            console.log(messageList.list[0].u?.offset);
+            setCurrentOffset(messageList.list[0].u?.offset)
+        }
+        console.log('message list', messageList);
         if (messageList.changeType === 'new') {
             scrollDown()
         }
@@ -112,8 +119,10 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
+                    console.log('----11111');
+                    
                     setIsloading(true)
-                    getHistory(() => {
+                    getHistory(currentOffset,() => {
                         setIsloading(false)
                     })
                 }
