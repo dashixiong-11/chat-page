@@ -169,9 +169,11 @@ function Chat() {
                 </span>
               </div>}
               {res?.data_type === 'text' ? <Markdown>{(res?.value as string)}</Markdown> :
+              <div style={{ marginTop: '1em' }}> {
                 (res.value as { data_type: string, value: string }[]).map((item, index) =>
-                  <div style={{ marginTop: '1em' }} key={index}>{item.data_type === 'text' ? item.value : item.data_type === 'image' ? '[图片]' : ''}</div>
-                )
+                  <span  key={index}>{item.data_type === 'text' ? item.value : item.data_type === 'image' ? '[图片]' : ''}</span>
+                ) }
+              </div>
               }
             </div>
           )}

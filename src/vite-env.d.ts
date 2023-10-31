@@ -44,7 +44,7 @@ type MessageListType = { data_type: 'multimodal_text', value: { data_type: 'text
 type NewMessageType = {
   m?: MessageListType[]
   u?: {
-    avatar: string, id: string, name: string, offset: number | undefined, seed?: string,revise:string | undefined
+    avatar: string, id: string, name: string, offset: number | undefined, seed?: string, revise: string | undefined
   }
 }
 
@@ -53,7 +53,7 @@ type PublicationsType = {
   offset: number,
   info: { user: string },
   tags: {
-    revise:string | undefined,
+    revise: string | undefined,
     seed: string,
     nickname: string,
     avatar: string
