@@ -1,4 +1,4 @@
-import { get } from '@/utils/server'
+import { get, post } from '@/utils/server'
 import { useNavigate } from 'react-router-dom';
 import right from '@/assets/icons/right.svg'
 import plus from '@/assets/icons/plus.svg'
@@ -74,11 +74,16 @@ function Channels() {
     cb: getChannel,
   })
 
+  const clearContext = (name: string) => {
+    post<any, { channel: string }>('/im/api/clear-context', { channel: name })
+  }
+
   useLayoutEffect(() => {
     if ((!channel?.children || channel.children.length === 0) && channel?.channels && channel.channels.length === 1) {
       const channelItem = channel.channels[0]
       const { workDir } = channelItem.chan_info
       initializeSub(channelItem.name)
+      clearContext(channelItem.name)
       navigate(`/chat?channel_name=${channelItem.name}&cn_name=${channelItem.cn_name}` + (workDir ? `&workDir=${workDir}` : ''), { replace: true })
     }
 
@@ -90,11 +95,9 @@ function Channels() {
     const { name, cn_name } = channel
     document.title = cn_name;
     const { workDir } = channel.chan_info
+    clearContext(name)
     initializeSub(name)
-    const id = setTimeout(() => {
-      clearTimeout(id)
-      navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
-    }, 500)
+    navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
   }
 
   useEffect(() => {

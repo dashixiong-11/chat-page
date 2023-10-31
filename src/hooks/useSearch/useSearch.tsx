@@ -5,7 +5,7 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useRef, useEffect, Dispatch, SetStateAction, useCallback, ChangeEventHandler, ChangeEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, ChangeEventHandler, ChangeEvent } from 'react'
 import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import { useSearchParams } from 'react-router-dom'
@@ -23,22 +23,18 @@ type RecordStatus = 'recording' | 'translation' | 'off' | 'done'
 const ua = navigator.userAgent.toLowerCase(); //判断是否是苹果手机，是则是true
 const isIos = (ua.indexOf('iphone') != -1) || (ua.indexOf('ipad') != -1);
 
-const RecordBall = ({ status, setStatus, setText }: {
-    status: RecordStatus,
-    setStatus: Dispatch<SetStateAction<RecordStatus>>
-    setText: Dispatch<SetStateAction<string>>
+const RecordBall = ({ remove, sendMessage }: {
+    remove: () => void,
+    sendMessage: (message: string) => void
 }) => {
-    const [_status, set_status] = useState<RecordStatus>(status)
+    const [_status, set_status] = useState<RecordStatus>('recording')
     const [textValue, setTextValue] = useState('')
-    const onChangeStatus = (s: RecordStatus) => {
-        set_status(s)
-        setStatus(s)
-    }
 
 
     const startRecording = () => {
         wx.startRecord({
             success: () => {
+                set_status('recording')
                 console.log('开始录音');
             },
             cancel: () => {
@@ -52,42 +48,57 @@ const RecordBall = ({ status, setStatus, setText }: {
 
     }
 
-    const translationVoice = useCallback((id: string) => {
-        wx.translateVoice({
-            localId: id,
-            isShowProgressTips: 1,
-            success: function (res: any) {
-                setTextValue(textValue + res.translateResult)
-            }
+    useEffect(() => {
+        startRecording()
+    }, [])
+
+    const translationVoice = async (id: string) => {
+        set_status('translation')
+        return new Promise((resolve) => {
+            wx.translateVoice({
+                localId: id,
+                isShowProgressTips: 1,
+                success: function (res: any) {
+                    resolve(res.translateResult)
+                    // setTextValue(textValue + res.translateResult)
+                }
+            })
         })
-    }, [_status])
-    const stopRecording = () => {
-        wx.stopRecord({
-            success: (res) => {
-                translationVoice(res.localId)
-            }
+
+    }
+    const stopRecording: () => Promise<string> = async () => {
+        return new Promise((resolve) => {
+            wx.stopRecord({
+                success: (res) => {
+                    resolve(res.localId)
+                }
+            })
         })
     }
 
+
     useEffect(() => {
         wx.onVoiceRecordEnd({
-            // 录音时间超过一分钟没有停止的时候会执行 complete 回调
-            complete: function (res: any) {
-                translationVoice(res.localId)
+            complete: async function (res: any) {
+                await translationVoice(res.localId)
             }
         })
     }, [])
 
-    useEffect(() => {
-        if (_status === 'recording') {
-            startRecording()
-            return
-        } else if (_status === 'done') {
-            setText(textValue)
-        }
-        stopRecording()
-    }, [_status])
+    const sendVioce = useCallback(() => {
+        sendMessage(textValue)
+        remove()
+    }, [textValue])
 
+    const cancel = () => {
+        stopRecording()
+        remove()
+    }
+    const trans = async () => {
+        const id = await stopRecording()
+        const text = await translationVoice(id)
+        setTextValue(textValue + text)
+    }
 
 
     const textareaChangehandle: React.ChangeEventHandler<HTMLTextAreaElement> = (e) => {
@@ -109,35 +120,30 @@ const RecordBall = ({ status, setStatus, setText }: {
             <div className="record-wrapper-footer">
                 {
                     _status === 'recording' ?
-                        <img src={translation} onClick={() => onChangeStatus('translation')} alt="" /> :
-                        <img src={vioce} onClick={() => onChangeStatus('recording')} alt="" />
+                        <img src={translation} onClick={trans} alt="" /> :
+                        <img src={vioce} onClick={startRecording} alt="" />
                 }
                 <div className='close-icon'>
-                    <img src={close} onClick={() => onChangeStatus('off')} alt="" />
+                    <img src={close} onClick={cancel} alt="" />
                 </div>
-                <img src={check} onClick={() => onChangeStatus('done')} alt="" />
+                <img src={check} onClick={sendVioce} alt="" />
             </div>
         </div>
     </>
 }
 
 
+
 type UploadToOpenAIResType = {
     "url": string,
-    "assetPointer": string,
-    "height": string,
-    "width": string,
-    "sizeBytes": string
 }
 type Base64DataType = { base: string, id: string }
-export function useSearch() {
+export function useSearch(cb?: () => void) {
     const [params] = useSearchParams()
     const workDir = params.get('workDir')
     const searchInputRef = useRef<HTMLTextAreaElement>(null)
     const [searchValue, setSearchValue] = useState('')
     const { portal, remove } = usePortal()
-    const [recordStatus, setRecordStatus] = useState<RecordStatus>('done')
-    const [message, setMessage] = useState('')
     const [base64DataArray, setBase64DataArray] = useState<Base64DataType[]>([])
     const [imageIds, setImageIds] = useState<string[]>([])
     const onInput = (e: ChangeEvent<HTMLTextAreaElement>,) => {
@@ -160,10 +166,6 @@ export function useSearch() {
             await jssdkAuthorize()
         })()
     }, [])
-
-    useEffect(() => {
-        console.log('base64DataArray', base64DataArray);
-    }, [base64DataArray])
 
 
     const player = useRef<Player | null>(null)
@@ -201,7 +203,6 @@ export function useSearch() {
             }
         })()
         return () => {
-            setRecordStatus('off')
             parser.current && parser.current.destroy()
             player.current && player.current.destroy()
         }
@@ -210,23 +211,16 @@ export function useSearch() {
 
     useEffect(() => {
         return () => {
-            setRecordStatus('off')
             remove()
         }
     }, [])
 
 
-    useEffect(() => {
-        if (recordStatus === 'recording') {
-            portal(<RecordBall status={recordStatus} setStatus={setRecordStatus} setText={setMessage} />)
-        } else if (recordStatus === 'off' || recordStatus === 'done') {
-            remove()
-        }
-    }, [recordStatus])
 
-    const start = () => {
-        setRecordStatus('recording')
+    const showBall = () => {
+        portal(<RecordBall remove={remove} sendMessage={sendMessage} />)
     }
+
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
         const files = e.target.files;
@@ -315,13 +309,12 @@ export function useSearch() {
         }
     }, [base64DataArray])
 
-    const attchImage: () => Promise<UploadToOpenAIResType[]> = useCallback(async () => {
+    const attchImage: () => Promise<{ url: string }[]> = useCallback(async () => {
         if (imageIds.length === 0) return []
         try {
-            const urls = await post<{ urls: string[] }, { file_info_ids: string[] }>('/filesystem/api/attach', { file_info_ids: imageIds })
-            console.log('urls', urls);
-            const values = await post<{ data: UploadToOpenAIResType[] }, { urls: string[] }>('/gpt2api/api/upload-to-openai', { urls: urls.data.urls })
-            return values.data.data
+            const res = await post<{ urls: string[] }, { file_info_ids: string[] }>('/filesystem/api/attach', { file_info_ids: imageIds })
+            const data = res.data.urls.map(u => ({ url: u }))
+            return data
         } catch (error: any) {
             return []
         }
@@ -332,6 +325,7 @@ export function useSearch() {
         searchInputRef.current?.blur()
         if (!message.trim()) {
             setSearchValue('')
+            adjustHeight()
             showToast({
                 message: '请输入内容',
                 duration: 1500
@@ -339,7 +333,7 @@ export function useSearch() {
             return
         }
         const values = await attchImage()
-        showLoading()
+        cb && cb()
         const messageList: MessageListType = {
             data_type: 'text',
             value: message
@@ -362,6 +356,7 @@ export function useSearch() {
         }).finally(() => {
             clearBase64DataArray()
             setSearchValue('')
+            adjustHeight()
         })
     }, [base64DataArray])
 
@@ -388,7 +383,7 @@ export function useSearch() {
                     </div>
                     {/* <canvas className={`send-voice ${aiStatus}`} onClick={start} id="canvas" /> */}
                     <div className="icon-wrapper">
-                        <img src={voice} className='vioce-icon' alt="" onClick={start} />
+                        <img src={voice} className='vioce-icon' alt="" onClick={showBall} />
                         <img src={search} className='search-icon' alt="" onClick={() => sendMessage(searchValue)} />
                     </div>
                 </div>
@@ -398,8 +393,6 @@ export function useSearch() {
 
     return {
         view,
-        message,
-        recordStatus,
         base64DataArray,
         removeBase64Data,
     }

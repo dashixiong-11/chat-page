@@ -85,6 +85,11 @@
             }
 
 
+            .search-ipt::placeholder {
+                font-weight: bold;
+                font-size: 12px;
+                color: #7e7e7e;
+            }
             .search-ipt {
                 vertical-align: middle;
                 flex: 1;

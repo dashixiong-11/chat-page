@@ -34,7 +34,7 @@ function usePortal() {
   }
 
   const remove = () => {
-    if (node.current) {
+    if (node.current && document.body.contains(node.current)) {
       rootRef.current = null
       rootRef.current?.unmount();  // 使用 root 的 unmount 方法
       document.body.removeChild(node.current);

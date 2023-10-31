@@ -1,6 +1,5 @@
 import { StreamPosition, Subscription, Centrifuge } from 'centrifuge';
 import { showNotification } from '@/utils/loading';
-import { post } from '@/utils/server';
 import { create } from "zustand";
 
 type SubsetKeys<T> = { [K in keyof T]?: T[K] };
@@ -55,12 +54,11 @@ const useStore = create<StoreType>((set, get) => {
                 since: sp,
                 limit: 15, reverse: true
             });
-            console.log('offset',offset);
-            console.log('sp',sp);
             cb && cb()
             if (!resp) return
             const publications: any = resp.publications;
-            const resArray = (publications as PublicationsType[]).map(item => ({ m: item.data, u: { id: item.info?.user, avatar: item.tags?.avatar, offset: item.offset, name: item.tags?.nickname, seed: item.tags?.seed } }))
+            const resArray = (publications as PublicationsType[]).map(item => ({ m: item.data, u: { id: item.info?.user,
+                 avatar: item.tags?.avatar, offset: item.offset, name: item.tags?.nickname, seed: item.tags?.seed,revise: item.tags?.revise} }))
             get().modifyList(resArray)
         },
         initializeWs: (token: string, cb) => {
@@ -118,6 +116,7 @@ const useStore = create<StoreType>((set, get) => {
             ws.connect()
         },
         initializeSub: (channelName, cb?) => {
+            console.log('initializeSub');
             const ws = get().ws
             if (get().sub) {
                 get().removeSub()
@@ -132,7 +131,6 @@ const useStore = create<StoreType>((set, get) => {
             s.on('subscribed', async function (ctx) {
                 console.log('订阅成功', ctx.streamPosition);
                 ctx.streamPosition && get().setStreamPosition(ctx.streamPosition)
-                post<any,{offset:number,channel:string}>('/im/api/clear-context', { offset: ctx.streamPosition ? ctx.streamPosition.offset : 0, channel: channelName })
                 const id = setTimeout(() => {
                     cb && cb()
                     clearTimeout(id)
@@ -142,11 +140,20 @@ const useStore = create<StoreType>((set, get) => {
                 const { data, info, tags, offset } = ctx
                 const sp = JSON.parse(JSON.stringify(get().streamPosition))
                 get().setStreamPosition(Object.assign(sp, { offset: offset }))
-                const msg = { m: data, u: { id: info?.user || '', avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined } }
+                const msg = {
+                    m: data, u: {
+                        id: info?.user || '',
+                        revise: tags?.revise,
+                        avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined
+                    }
+                }
                 get().setNewMessage(msg)
                 get().modifyList(msg)
-            }).on('error', () => {
+            }).on('error', (error) => {
+                console.log('error', error);
 
+            }).on('leave', (leave) => {
+                console.log('离开', leave);
             })
             s.subscribe();
         },

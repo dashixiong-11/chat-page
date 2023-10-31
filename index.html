@@ -11,7 +11,7 @@
 
 <body>
   <div id="root"></div>
-  <svg style='display: none'>
+  <!-- <svg style='display: none'>
     <defs>
       <filter id='blob'>
         <feGaussianBlur in='SourceGraphic' stdDeviation='10' result='blur'> </feGaussianBlur>
@@ -22,16 +22,18 @@
               0 0 0 20 -10"></feColorMatrix>
       </filter>
     </defs>
-  </svg>
+  </svg> -->
   <script type="module" src="/src/main.tsx"></script>
   <script src="https://cdn.bootcdn.net/ajax/libs/vConsole/3.15.1/vconsole.min.js"></script>
-  <script>
+  <script type="module">
     if (!Object.hasOwn) {
       Object.hasOwn = (obj, key) => {
         return Object.prototype.hasOwnProperty.call(obj, key);
       };
     }
-   // var vConsole = new window.VConsole();
+    if (import.meta.env.VITE_ENABLE_VCONSOLE === 'true') {
+      var vConsole = new window.VConsole();
+    }
   </script>
 </body>
 
