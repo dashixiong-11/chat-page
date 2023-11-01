@@ -196,6 +196,7 @@ export function useSearch(cb?: () => void) {
 
 
             } catch (error) {
+                console.log('svga error', error);
                 showToast({
                     message: '动画加载失败',
                     duration: 1500
@@ -367,6 +368,8 @@ export function useSearch(cb?: () => void) {
         }
     };
 
+
+    console.log('is IOS', isIos);
 
     const view = <>
         <div className='search-bar'>

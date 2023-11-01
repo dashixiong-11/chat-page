@@ -22,9 +22,8 @@ function App() {
   const { initializeWs } = useStore()
   useEffect(() => {
     if (token) {
-      initializeWs(token, () => {
-        navigate('/channels', { replace: true })
-      })
+      initializeWs(token)
+      navigate('/channels', { replace: true })
     }
   }, [])
 

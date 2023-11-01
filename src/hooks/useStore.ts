@@ -8,15 +8,13 @@ type StoreType = {
     sub: Subscription | null,
     newMessage: NewMessageType,
     currentSubName: string,
-    history: Array<NewMessageType>,
+    history: { list: Array<NewMessageType>, changeType: 'new' | 'history' },
     messageList: { list: Array<NewMessageType>, changeType: 'new' | 'history' },
     streamPosition: StreamPosition,
-    initializeWs: (token: string, cb: () => void) => void,
+    initializeWs: (token: string, cb?: () => void) => void,
     initializeSub: (channelName: string, cb?: () => void) => void,
-    setHistory: (message: NewMessageType) => void,
     getHistory: (offset?: number, cb?: () => void) => void,
     setSub: (s: Subscription | null) => void,
-    setNewMessage: (message: NewMessageType) => void,
     modifyList: (message: NewMessageType | NewMessageType[]) => void,
     setStreamPosition: (position: SubsetKeys<StreamPosition>) => void,
     removeSub: () => void,
@@ -35,14 +33,16 @@ const useStore = create<StoreType>((set, get) => {
         sub: null,
         currentSubName: '',
         messageList: { list: [], changeType: 'new' },
-        history: [],
+        history: { list: [], changeType: 'new' },
         newMessage: {},
         streamPosition: { epoch: "", offset: 0 },
         setSub: (s) => { set(state => ({ ...state, sub: s })) },
-        setHistory: (message) => { set((state) => ({ ...state, history: [message, ...state.history] })) },
         getHistory: async (offset?, cb?) => {
             const sub = get().sub;
             const sp = get().streamPosition;
+            console.log('sp', sp);
+            console.log('offset', offset);
+
             if (offset) {
                 sp.offset = offset
             }
@@ -54,14 +54,21 @@ const useStore = create<StoreType>((set, get) => {
                 since: sp,
                 limit: 15, reverse: true
             });
+            console.log('resp');
+            console.log(resp);
+
             cb && cb()
             if (!resp) return
             const publications: any = resp.publications;
-            const resArray = (publications as PublicationsType[]).map(item => ({ m: item.data, u: { id: item.info?.user,
-                 avatar: item.tags?.avatar, offset: item.offset, name: item.tags?.nickname, seed: item.tags?.seed,revise: item.tags?.revise} }))
+            const resArray = (publications as PublicationsType[]).map(item => ({
+                m: item.data, u: {
+                    id: item.info?.user,
+                    avatar: item.tags?.avatar, offset: item.offset, name: item.tags?.nickname, seed: item.tags?.seed, revise: item.tags?.revise
+                }
+            }))
             get().modifyList(resArray)
         },
-        initializeWs: (token: string, cb) => {
+        initializeWs: (token: string, cb?) => {
             const ws = get().ws || new Centrifuge(`${wsIp}/im/connection/websocket`, {
                 getToken: () => new Promise(() => {
                     wx.miniProgram.reLaunch({
@@ -84,7 +91,7 @@ const useStore = create<StoreType>((set, get) => {
                 })
 
                 const id = setTimeout(() => {
-                    cb()
+                    cb && cb()
                     clearTimeout(id)
                 }, 500)
                 //     reconnectAttempts.current = 0
@@ -147,8 +154,8 @@ const useStore = create<StoreType>((set, get) => {
                         avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined
                     }
                 }
-                get().setNewMessage(msg)
                 get().modifyList(msg)
+                set({ newMessage: msg })
             }).on('error', (error) => {
                 console.log('error', error);
 
@@ -159,21 +166,23 @@ const useStore = create<StoreType>((set, get) => {
         },
         removeSub: () => {
             console.log('取消订阅');
-
+            set({ history: { list: [], changeType: 'history' } })
+            set({ streamPosition: { offset: 0, epoch: '' } })
+            set({ newMessage: { m: undefined, u: undefined } })
             get().sub?.unsubscribe();
             get().ws?.removeSubscription(get().sub)
         },
         modifyList: (data: Array<NewMessageType> | NewMessageType) => {
-            const ml = get().messageList;
+            const his = get().history;
             const sp = get().streamPosition;
             if (!data) return
 
             if (Object.prototype.toString.call(data) === '[object Array]') {
                 const data0 = (data as NewMessageType[])[0]
                 set({ streamPosition: { ...sp, offset: data0?.u?.offset || 0 } })
-                set({ messageList: { list: [...(data as NewMessageType[]), ...ml.list], changeType: 'history' } })
+                set({ history: { list: [...(data as NewMessageType[]), ...his.list], changeType: 'history' } })
             } else if (Object.prototype.toString.call(data) === '[object Object]') {
-                const cp: NewMessageType[] = [...ml.list]
+                const cp: NewMessageType[] = [...his.list]
                 if (cp.length === 0) return
                 const index = cp.findIndex(item => item && item.u?.offset === (data as NewMessageType).u?.offset);
                 if (index !== -1) {
@@ -181,17 +190,9 @@ const useStore = create<StoreType>((set, get) => {
                 } else {
                     cp.push((data as NewMessageType));
                 }
-                set({ messageList: { list: cp, changeType: 'new' } })
+                set({ history: { list: cp, changeType: 'new' } })
             }
         },
-        setNewMessage: (message: NewMessageType) =>
-            set(state => {
-                return ({
-                    ...state,
-                    newMessage: message,
-                    history: [...state.history, message]
-                })
-            }),
         setStreamPosition: position => {
             return set(
                 state => {

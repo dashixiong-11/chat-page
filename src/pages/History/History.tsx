@@ -50,7 +50,7 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
 
 }
 function History() {
-    const { messageList, getHistory } = useStore()
+    const { history, getHistory } = useStore()
     const divend = useRef<HTMLDivElement>(null)
     const listDivRef = useRef<HTMLDivElement>(null)
     const [isLoading, setIsloading] = useState(false)
@@ -64,28 +64,28 @@ function History() {
     }, [divend.current])
 
     useEffect(() => {
-        if (messageList.list.length > 0) {
-            console.log(messageList.list[0].u?.offset);
-            setCurrentOffset(messageList.list[0].u?.offset)
+        if (history.list.length > 0) {
+            console.log(history.list[0].u?.offset);
+            setCurrentOffset(history.list[0].u?.offset)
         }
-        console.log('message list', messageList);
-        if (messageList.changeType === 'new') {
+        console.log('message list', history);
+        if (history.changeType === 'new') {
             scrollDown()
         }
 
-    }, [messageList])
+    }, [history])
 
     const [listDivWrapperHeight, setListDivWrapperHeight] = useState(0)
 
     const c = document.querySelector('#container')
     useEffect(() => {
-        if (listDivRef.current && messageList.list.length > 0) {
+        if (listDivRef.current && history.list.length > 0) {
             if (listDivRef.current.clientHeight - listDivWrapperHeight > 0) {
                 c && (c.scrollTop = listDivRef.current.clientHeight - listDivWrapperHeight)
             }
             setListDivWrapperHeight(listDivRef.current.clientHeight)
         }
-    }, [messageList, listDivRef.current])
+    }, [history, listDivRef.current])
 
     const scrollDown = () => {
         jsControl.current = true
@@ -119,10 +119,8 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
-                    console.log('----11111');
-                    
                     setIsloading(true)
-                    getHistory(currentOffset,() => {
+                    getHistory(currentOffset, () => {
                         setIsloading(false)
                     })
                 }
@@ -140,8 +138,8 @@ function History() {
     return <div className="history" onScroll={onPageScroll} id='container'>
         <div className="scroll-container" id='scroll-container' >
             <div className="scroll-list" ref={listDivRef} id='list-wrapper' >
-                <div id='first-child' > {isLoading ? '加载中...' : ''} </div>
-                {messageList && messageList.list && messageList.list.map((item, index) => <ListItem key={index} item={item} />)}
+                <div id='first-child' >  </div>
+                {history.list && history.list.map((item, index) => <ListItem key={index} item={item} />)}
             </div>
         </div>
         <div ref={divend} className="end" />

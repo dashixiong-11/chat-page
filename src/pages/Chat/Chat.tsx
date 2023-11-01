@@ -58,10 +58,12 @@ function Chat() {
   const { portal, remove } = usePortal()
   const newMessage = useStore((state) => state.newMessage)
   const [result, setResult] = useState<MessageListType[]>([])
+  const currentOffset = useRef<number | undefined>(0)
 
   useEffect(() => {
     if (!newMessage || !newMessage.m) return
-    if (newMessage.u?.id === localStorage.getItem('id')) {
+    currentOffset.current = newMessage.u?.offset
+    if (newMessage.u?.id === localStorage.getItem('id') && (newMessage.u?.offset === currentOffset.current || currentOffset.current === 0)) {
       setResult(newMessage.m)
     }
     if (newMessage.u?.revise === 'true') {
@@ -75,6 +77,12 @@ function Chat() {
   const to = (path: string) => {
     navigate(path)
   }
+
+  useEffect(() => {
+    return () => {
+      remove()
+    }
+  }, [])
 
   const showBallLoading = () => {
     portal(<BallLoading />, <div className='ball-loading-mask' />)
@@ -169,11 +177,11 @@ function Chat() {
                 </span>
               </div>}
               {res?.data_type === 'text' ? <Markdown>{(res?.value as string)}</Markdown> :
-              <div style={{ marginTop: '1em' }}> {
-                (res.value as { data_type: string, value: string }[]).map((item, index) =>
-                  <span  key={index}>{item.data_type === 'text' ? item.value : item.data_type === 'image' ? '[图片]' : ''}</span>
-                ) }
-              </div>
+                <div style={{ marginTop: '1em' }}> {
+                  (res.value as { data_type: string, value: string }[]).map((item, index) =>
+                    <span key={index}>{item.data_type === 'text' ? item.value : item.data_type === 'image' ? '[图片]' : ''}</span>
+                  )}
+                </div>
               }
             </div>
           )}
