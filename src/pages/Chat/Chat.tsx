@@ -23,6 +23,7 @@ const BallLoading = () => {
       })
       try {
         const url = './src/assets/animation/ball.svga'
+        // const url = '../../assets/animation/ball.svga'
         const db = new DB()
         let svga = await db.find(url)
         if (!svga) {
@@ -35,6 +36,7 @@ const BallLoading = () => {
         await player.current.mount(svga)
         player.current.start()
       } catch (error) {
+        console.log('error', error);
         showToast({
           message: '动画加载失败',
           duration: 1500

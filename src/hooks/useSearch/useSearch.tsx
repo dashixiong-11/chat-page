@@ -10,7 +10,6 @@ import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import { useSearchParams } from 'react-router-dom'
 import { useStore } from '@/hooks/useStore';
-import { Parser, Player, DB } from 'svga'
 import { showToast, showLoading, hideLoading } from '@/utils/loading'
 import { dataURLtoBlob } from '@/utils/dataURLtoBlob';
 import search from '@/assets/icons/search-line.svg'
@@ -166,52 +165,6 @@ export function useSearch(cb?: () => void) {
             await jssdkAuthorize()
         })()
     }, [])
-
-
-    const player = useRef<Player | null>(null)
-    const parser = useRef<Parser | null>(null)
-    useEffect(() => {
-        (async () => {
-            const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-            if (!canvas) return
-            player.current = new Player({
-                container: canvas,
-            })
-            try {
-                // const url = './src/assets/animation/ball.svga'
-                const url = '../../assets/animation/ball.svga'
-                const db = new DB()
-                let svga = await db.find(url)
-                if (!svga) {
-                    // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
-                    parser.current = new Parser({ isDisableImageBitmapShim: true })
-                    svga = await parser.current.load(url)
-                    await db.insert(url, svga)
-                }
-                if (!player.current) return
-                await player.current.mount(svga)
-                player.current.start()
-                setTimeout(() => {
-                    player.current && player.current.pause()
-                }, 100)
-
-
-            } catch (error) {
-                console.log('------------------11111111111111111');
-                console.log(error);
-                console.log('svga error', error);
-                showToast({
-                    message: '动画加载失败',
-                    duration: 1500
-                })
-            }
-        })()
-        return () => {
-            parser.current && parser.current.destroy()
-            player.current && player.current.destroy()
-        }
-    }, [])
-
 
     useEffect(() => {
         return () => {
