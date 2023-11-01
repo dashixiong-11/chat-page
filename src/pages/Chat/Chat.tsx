@@ -23,7 +23,6 @@ const BallLoading = () => {
       })
       const url = './src/assets/animation/ball.svga'
       try {
-        // const url = '../../assets/animation/ball.svga'
         const db = new DB()
         let svga = await db.find(url)
         if (!svga) {
