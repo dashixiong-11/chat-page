@@ -8,6 +8,7 @@ import Markdown from 'react-markdown'
 import usePortal from '@/hooks/usePortal/usePortal';
 import { showToast } from '@/utils/loading';
 import { Parser, Player, DB } from 'svga'
+import  ballurl from '../../assets/animation/ball.svga?url'
 import './Chat.scss'
 
 
@@ -21,15 +22,15 @@ const BallLoading = () => {
       player.current = new Player({
         container: canvas,
       })
-      const url = './src/assets/animation/ball.svga'
+      // const ballurl = './src/assets/animation/ball.svga'
       try {
         const db = new DB()
-        let svga = await db.find(url)
+        let svga = await db.find(ballurl)
         if (!svga) {
           // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
           parser.current = new Parser({ isDisableImageBitmapShim: true })
-          svga = await parser.current.load(url)
-          await db.insert(url, svga)
+          svga = await parser.current.load(ballurl)
+          await db.insert(ballurl, svga)
         }
         if (!player.current) return
         await player.current.mount(svga)
@@ -37,7 +38,7 @@ const BallLoading = () => {
       } catch (error) {
         console.log('error', error);
         parser.current = new Parser()
-        const svga = await parser.current.load(url)
+        const svga = await parser.current.load(ballurl)
         await player.current.mount(svga)
         player.current.start()
       }

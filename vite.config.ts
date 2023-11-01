@@ -18,6 +18,8 @@ export default defineConfig(({ mode }) => {
   const ip = env.VITE_IP_VALUE
   return {
     plugins: [react()],
+    assetsInclude: ['**/*.svga'],
+
     css: {
       preprocessorOptions: {
         scss: {
