@@ -23,9 +23,13 @@ const BallLoading = () => {
         container: canvas,
       })
       //      const ballurl = '../../assets/animation/ball.svga'
-      console.log('ballurl',ballurl);
+      console.log('ballurl', ballurl);
       parser.current = new Parser()
-      const svga = await parser.current.load(ballurl)
+      const svga = await parser.current.load(ballurl).catch(err => {
+        console.log(err);
+        throw new Error(err)
+      })
+      console.log(svga);
       await player.current.mount(svga)
       player.current.start()
       // try {
