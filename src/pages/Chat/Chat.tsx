@@ -5,69 +5,69 @@ import { useSearch } from '@/hooks/useSearch/useSearch';
 import history from '@/assets/icons/history.svg'
 import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
-import usePortal from '@/hooks/usePortal/usePortal';
 import { hideLoading, showLoading, showToast } from '@/utils/loading';
-import { Parser, Player } from 'svga'
-import ballurl from '../../assets/animation/ball.svga?url'
 import './Chat.scss'
+// import usePortal from '@/hooks/usePortal/usePortal';
+// import { Parser, Player } from 'svga'
+// import ballurl from '../../assets/animation/ball.svga?url'
 
 
-const BallLoading = () => {
-  const player = useRef<Player | null>(null)
-  const parser = useRef<Parser | null>(null)
-  useEffect(() => {
-    (async () => {
-      const canvas = document.getElementById('ball-canvas') as HTMLCanvasElement;
-      if (!canvas) return
-      player.current = new Player({
-        container: canvas,
-      })
-      //      const ballurl = '../../assets/animation/ball.svga'
-      console.log('ballurl111', ballurl);
-      parser.current = new Parser()
-      const svga = await parser.current.load(ballurl)
-      console.log('svga');
-      console.log(svga);
-      console.log('----');
+// const BallLoading = () => {
+//   const player = useRef<Player | null>(null)
+//   const parser = useRef<Parser | null>(null)
+//   useEffect(() => {
+//     (async () => {
+//       const canvas = document.getElementById('ball-canvas') as HTMLCanvasElement;
+//       if (!canvas) return
+//       player.current = new Player({
+//         container: canvas,
+//       })
+//       //      const ballurl = '../../assets/animation/ball.svga'
+//       console.log('ballurl111', ballurl);
+//       parser.current = new Parser()
+//       const svga = await parser.current.load(ballurl)
+//       console.log('svga');
+//       console.log(svga);
+//       console.log('----');
 
-      await player.current.mount(svga)
-      player.current.start()
-      // try {
-      //   const db = new DB()
-      //   let svga = await db.find(ballurl)
-      //   if (!svga) {
-      //     // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
-      //     parser.current = new Parser({ isDisableImageBitmapShim: true })
-      //     svga = await parser.current.load(ballurl)
-      //     await db.insert(ballurl, svga)
-      //   }
-      //   if (!player.current) return
-      //   await player.current.mount(svga)
-      //   player.current.start()
-      // } catch (error) {
-      //   console.log('error', error);
-      //   parser.current = new Parser()
-      //   const svga = await parser.current.load(ballurl)
-      //   await player.current.mount(svga)
-      //   player.current.start()
-      // }
-    })()
-    return () => {
-      parser.current && parser.current.destroy()
-      player.current && player.current.destroy()
-    }
-  }, [])
-  return <>
-    <canvas id='ball-canvas' />
-  </>
-}
+//       await player.current.mount(svga)
+//       player.current.start()
+//       // try {
+//       //   const db = new DB()
+//       //   let svga = await db.find(ballurl)
+//       //   if (!svga) {
+//       //     // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
+//       //     parser.current = new Parser({ isDisableImageBitmapShim: true })
+//       //     svga = await parser.current.load(ballurl)
+//       //     await db.insert(ballurl, svga)
+//       //   }
+//       //   if (!player.current) return
+//       //   await player.current.mount(svga)
+//       //   player.current.start()
+//       // } catch (error) {
+//       //   console.log('error', error);
+//       //   parser.current = new Parser()
+//       //   const svga = await parser.current.load(ballurl)
+//       //   await player.current.mount(svga)
+//       //   player.current.start()
+//       // }
+//     })()
+//     return () => {
+//       parser.current && parser.current.destroy()
+//       player.current && player.current.destroy()
+//     }
+//   }, [])
+//   return <>
+//     <canvas id='ball-canvas' />
+//   </>
+// }
 function Chat() {
   const navigate = useNavigate()
   const { view, base64DataArray, removeBase64Data } = useSearch(() => {
     showLoading()
     //showBallLoading()
   })
-  const { portal, remove } = usePortal()
+  // const { portal, remove } = usePortal()
   const newMessage = useStore((state) => state.newMessage)
   const [result, setResult] = useState<MessageListType[]>([])
   const currentOffset = useRef<number | undefined>(0)
@@ -93,15 +93,15 @@ function Chat() {
 
   useEffect(() => {
     return () => {
-      remove()
+      // remove()
+      hideLoading()
     }
   }, [])
 
-  const showBallLoading = () => {
-    portal(<BallLoading />, <div className='ball-loading-mask' />)
-
-  }
-  const hideBallLoading = () => { remove() }
+  // const showBallLoading = () => {
+  //   portal(<BallLoading />, <div className='ball-loading-mask' />)
+  // }
+  // const hideBallLoading = () => { remove() }
 
   function fallbackCopyTextToClipboard(text: string) {
     var textArea = document.createElement("textarea");
