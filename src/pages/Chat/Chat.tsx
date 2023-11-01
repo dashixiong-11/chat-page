@@ -6,7 +6,7 @@ import history from '@/assets/icons/history.svg'
 import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
 import usePortal from '@/hooks/usePortal/usePortal';
-import { showToast } from '@/utils/loading';
+import { hideLoading, showLoading, showToast } from '@/utils/loading';
 import { Parser, Player } from 'svga'
 import ballurl from '../../assets/animation/ball.svga?url'
 import './Chat.scss'
@@ -29,7 +29,7 @@ const BallLoading = () => {
       console.log('svga');
       console.log(svga);
       console.log('----');
-      
+
       await player.current.mount(svga)
       player.current.start()
       // try {
@@ -64,7 +64,8 @@ const BallLoading = () => {
 function Chat() {
   const navigate = useNavigate()
   const { view, base64DataArray, removeBase64Data } = useSearch(() => {
-    showBallLoading()
+    showLoading()
+    //showBallLoading()
   })
   const { portal, remove } = usePortal()
   const newMessage = useStore((state) => state.newMessage)
@@ -78,7 +79,8 @@ function Chat() {
       setResult(newMessage.m)
     }
     if (newMessage.u?.revise === 'true') {
-      hideBallLoading()
+      //hideBallLoading()
+      hideLoading()
     }
     console.log('new message', newMessage);
 
