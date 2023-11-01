@@ -12,6 +12,6 @@ export function useThrottle<T extends (...ags: any[]) => void>(fn: T, delay: num
     }
     current.timer = setTimeout(() => {
       current.fn.call(this, ...args);
-    }, delay);
-  }, dep) as unknown as number
+    }, delay) as unknown as number
+  }, dep) 
 }
