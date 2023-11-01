@@ -53,7 +53,7 @@ function History() {
     const { history, getHistory } = useStore()
     const divend = useRef<HTMLDivElement>(null)
     const listDivRef = useRef<HTMLDivElement>(null)
-    const [isLoading, setIsloading] = useState(false)
+    // const [isLoading, setIsloading] = useState(false)
     const [currentOffset, setCurrentOffset] = useState<number | undefined>(0)
     const jsControl = useRef(false)
     useEffect(() => {
@@ -119,9 +119,9 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
-                    setIsloading(true)
+                   // setIsloading(true)
                     getHistory(currentOffset, () => {
-                        setIsloading(false)
+                     //   setIsloading(false)
                     })
                 }
             });
