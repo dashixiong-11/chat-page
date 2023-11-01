@@ -30,7 +30,7 @@ export const useShowToast = () => {
     timerId.current = setTimeout(() => {
       timerId.current && clearTimeout(timerId.current)
       remove()
-    }, duration)
+    }, duration) as unknown as number
   }
 
   return {

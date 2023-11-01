@@ -44,7 +44,7 @@ function showToast({ message, duration }: { message: string, duration?: number }
         id = setTimeout(() => {
             hide()
             clearTimeout(id)
-        }, duration)
+        }, duration) as unknown as number
     }
 }
 
@@ -78,7 +78,7 @@ function showNotification({ message, duration, type = 'info', success }: {
             hideNotification()
             success && success()
             clearTimeout(id)
-        }, duration)
+        }, duration) as unknown as number
     }
 }
 function hideNotification() {
