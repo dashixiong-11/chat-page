@@ -7,8 +7,8 @@ import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
 import usePortal from '@/hooks/usePortal/usePortal';
 import { showToast } from '@/utils/loading';
-import { Parser, Player, DB } from 'svga'
-import  ballurl from '../../assets/animation/ball.svga?url'
+import { Parser, Player } from 'svga'
+import ballurl from '../../assets/animation/ball.svga?url'
 import './Chat.scss'
 
 
@@ -22,26 +22,31 @@ const BallLoading = () => {
       player.current = new Player({
         container: canvas,
       })
-      // const ballurl = './src/assets/animation/ball.svga'
-      try {
-        const db = new DB()
-        let svga = await db.find(ballurl)
-        if (!svga) {
-          // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
-          parser.current = new Parser({ isDisableImageBitmapShim: true })
-          svga = await parser.current.load(ballurl)
-          await db.insert(ballurl, svga)
-        }
-        if (!player.current) return
-        await player.current.mount(svga)
-        player.current.start()
-      } catch (error) {
-        console.log('error', error);
-        parser.current = new Parser()
-        const svga = await parser.current.load(ballurl)
-        await player.current.mount(svga)
-        player.current.start()
-      }
+      //      const ballurl = '../../assets/animation/ball.svga'
+      console.log('ballurl',ballurl);
+      parser.current = new Parser()
+      const svga = await parser.current.load(ballurl)
+      await player.current.mount(svga)
+      player.current.start()
+      // try {
+      //   const db = new DB()
+      //   let svga = await db.find(ballurl)
+      //   if (!svga) {
+      //     // Parser 需要配置取消使用 ImageBitmap 特性，ImageBitmap 数据无法直接存储到 DB 内
+      //     parser.current = new Parser({ isDisableImageBitmapShim: true })
+      //     svga = await parser.current.load(ballurl)
+      //     await db.insert(ballurl, svga)
+      //   }
+      //   if (!player.current) return
+      //   await player.current.mount(svga)
+      //   player.current.start()
+      // } catch (error) {
+      //   console.log('error', error);
+      //   parser.current = new Parser()
+      //   const svga = await parser.current.load(ballurl)
+      //   await player.current.mount(svga)
+      //   player.current.start()
+      // }
     })()
     return () => {
       parser.current && parser.current.destroy()

@@ -325,8 +325,6 @@ export function useSearch(cb?: () => void) {
     };
 
 
-    console.log('is IOS', isIos);
-
     const view = <>
         <div className='search-bar'>
             <>
