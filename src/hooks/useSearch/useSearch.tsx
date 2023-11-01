@@ -178,7 +178,8 @@ export function useSearch(cb?: () => void) {
                 container: canvas,
             })
             try {
-                const url = './src/assets/animation/ball.svga'
+                // const url = './src/assets/animation/ball.svga'
+                const url = '../../assets/animation/ball.svga'
                 const db = new DB()
                 let svga = await db.find(url)
                 if (!svga) {
@@ -196,6 +197,8 @@ export function useSearch(cb?: () => void) {
 
 
             } catch (error) {
+                console.log('------------------11111111111111111');
+                console.log(error);
                 console.log('svga error', error);
                 showToast({
                     message: '动画加载失败',
