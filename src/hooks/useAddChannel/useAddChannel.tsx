@@ -46,15 +46,16 @@ const Model = ({ cb, remove, item }: { cb: () => void, remove: () => void, item:
   }
   const hide = () => { remove() }
   const onConfirm = async () => {
+    const chanInfo = item.id === 4 ? {
+      "patient_name": name,
+      "patient_age": parseInt(age),
+      "patient_gender": sex
+    } : {}
     const res = await post<any, P>('/miniprogram/api/channel/' + item.root_id, {
       name: channelName,
       cn_name: cnChannelName,
       category_id: item.id,
-      chan_info: Object.keys(item.chan_info).length > 0 ? {
-        "patient_name": name,
-        "patient_age": parseInt(age),
-        "patient_gender": sex
-      } : {}
+      chan_info: chanInfo
     }).catch(error => {
 
       showToast({
@@ -85,7 +86,7 @@ const Model = ({ cb, remove, item }: { cb: () => void, remove: () => void, item:
       </div>
     </div>
     {
-      item.id === 4  && <>
+      item.id === 4 && <>
         <div className="col">
           <div className="col-wrapper">
             <span>患者姓名</span>

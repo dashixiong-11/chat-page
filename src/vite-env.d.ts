@@ -38,8 +38,11 @@ type CategoryListType = {
   value: number | string
 }[]
 
-type MessageListType = { data_type: 'multimodal_text', value: { data_type: 'text' | 'image' | 'voice', value: string }[] }
-  | { data_type: 'text' | 'voice' | 'image', value: string }
+type MessageListType = {
+  data_type: 'multimodal_text',
+  value: { data_type: 'text' | 'image' | 'voice' | 'table', value: string | { url: string } }[]
+}
+  | { data_type: 'text' | 'voice' | 'image' | 'table', value: string | { url: string } }
 
 type NewMessageType = {
   m?: MessageListType[]

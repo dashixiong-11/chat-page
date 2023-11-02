@@ -7,12 +7,17 @@ import './History.scss'
 
 const ListItem = ({ item }: { item: NewMessageType }) => {
 
+
     const getMessageView = (message: MessageListType) => {
         if (message.data_type === 'text') {
-            return <span key={item.u?.offset}> {message.value}</span>
+            return <span key={item.u?.offset}> {(message.value as string)}</span>
         } else if (message.data_type === 'multimodal_text') {
-            return (message.value as { data_type: 'text' | 'image', value: string }[])
-                .map((m, index) => <span key={index + '-' + m.data_type}>{m.data_type === 'image' ? '[图片]' : m.value} </span>)
+            return (message.value as { data_type: 'text' | 'image', value: string | { url: string } }[])
+                .map((m, index) => <div key={index + '-' + m.data_type}>{m.data_type === 'image' ?
+                    <div>
+                        <img className="message-image" src={(m.value as { url: string }).url} />
+                    </div>
+                    : (m.value as string)} </div>)
         }
     }
 
@@ -119,9 +124,9 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
-                   // setIsloading(true)
+                    // setIsloading(true)
                     getHistory(currentOffset, () => {
-                     //   setIsloading(false)
+                        //   setIsloading(false)
                     })
                 }
             });

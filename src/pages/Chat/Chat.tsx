@@ -146,6 +146,18 @@ function Chat() {
   };
 
 
+  const x = (message: MessageListType) => {
+    console.log('----',message);
+    if (message.data_type === 'multimodal_text') {
+      return message.value?.map(m => <>{m.data_type === 'text' ? m.value : m.data_type === 'image' ? '[图片]' : ''}</>)
+    } else if (message.data_type === 'text') {
+      return <Markdown>{(message?.value as string)}</Markdown>
+    } else if (message.data_type === 'image') {
+      return <span>[图片]</span>
+    } else if (message.data_type === 'table'){
+      return <span>[表格]</span>
+    }
+  }
   return <div className="chat"  >
     <div className="floating-ball" onClick={() => to('/history')}>
       <img src={history} alt="" />
@@ -161,38 +173,20 @@ function Chat() {
                 <img className='remove-icon' src={close} alt="" />
               </div>
               <img className='search-img' src={base64.base} />
-            </div>
-            )}
+            </div>)}
           </div>
         }
       </div>
       <div className="search-res">
         {newMessage && newMessage.m && newMessage.m[0] &&
-          result.filter(f => f.data_type === 'text' || f.data_type === 'multimodal_text').map((res, index) =>
+          result.filter(f => f.data_type === 'text' || f.data_type === 'image' || f.data_type === 'table'|| f.data_type ==='multimodal_text').map((res, index) =>
             <div className='res-block' key={index}>
-              {/* {
-              result.find(rf => rf.data_type === 'voice') &&
-              <div className='voice-btn' onClick={() => playVoice(result.find(rf => rf.data_type === 'voice'))}>点击播放语音</div>
-            } */}
-              {res?.value && <div className='cp-btn' onClick={() => copy((res?.value as string))}>
-                <span>
-                  {index === 0 ? '问题：' : index === 1 ? '回答：' : '其他：'}
-                </span>
-                {
-                  index !== 0 ?
-                    <span style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}>
-                      复制
-                    </span> : ' '
-
-                }
-              </div>}
-              {res?.data_type === 'text' ? <Markdown>{(res?.value as string)}</Markdown> :
-                <div style={{ marginTop: '1em' }}> {
-                  (res.value as { data_type: string, value: string }[]).map((item, index) =>
-                    <span key={index}>{item.data_type === 'text' ? item.value : item.data_type === 'image' ? '[图片]' : ''}</span>
-                  )}
-                </div>
-              }
+              {res?.value &&
+                <div className='cp-btn' onClick={() => copy((res?.value as string))}>
+                  <span> {index === 0 ? '问题：' : index === 1 ? '回答：' : '其他：'} </span>
+                  {index !== 0 ? <span style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : ' '}
+                </div>}
+              {x(res)}
             </div>
           )}
       </div>

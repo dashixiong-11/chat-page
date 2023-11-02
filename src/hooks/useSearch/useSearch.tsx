@@ -13,6 +13,8 @@ import { useStore } from '@/hooks/useStore';
 import { showToast, showLoading, hideLoading } from '@/utils/loading'
 import { dataURLtoBlob } from '@/utils/dataURLtoBlob';
 import search from '@/assets/icons/search-line.svg'
+import camera from '@/assets/icons/camera.svg'
+import expandDown from '@/assets/icons/expand-down.svg'
 import voice from '@/assets/icons/voice-line.svg'
 import wx from 'jweixin-1.6.0'
 import './useSearch.scss'
@@ -180,6 +182,7 @@ export function useSearch(cb?: () => void) {
 
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
+        switchAction()
         const files = e.target.files;
         if (!files) return;
 
@@ -237,7 +240,7 @@ export function useSearch(cb?: () => void) {
         });
     }
 
-    const uploadFile: (bs64: Base64DataType[]) => Promise<string[]> = useCallback(async (bs64) => {
+    const uploadFile: (bs64: Base64DataType[]) => Promise<string[]> = async (bs64) => {
         if (!bs64.length) { return [] }
         const formData = new FormData
         for (let i = 0; i < bs64.length; i++) {
@@ -262,7 +265,7 @@ export function useSearch(cb?: () => void) {
         } catch (error) {
             return []
         }
-    }, [base64DataArray])
+    }
 
     const attchImage: () => Promise<{ url: string }[]> = useCallback(async () => {
         if (imageIds.length === 0) return []
@@ -278,27 +281,20 @@ export function useSearch(cb?: () => void) {
 
     const sendMessage = useCallback(async (message: string) => {
         searchInputRef.current?.blur()
-        if (!message.trim()) {
-            setSearchValue('')
-            adjustHeight()
-            showToast({
-                message: '请输入内容',
-                duration: 1500
-            })
-            return
-        }
         const values = await attchImage()
+        if (!message.trim() && values.length === 0) { return }
         cb && cb()
         const messageList: MessageListType = {
             data_type: 'text',
             value: message
         }
-        if (values.length >= 1) {
-            const valueArray: { data_type: 'text' | 'image', value: string | UploadToOpenAIResType }[] = [{ data_type: 'text', value: message }]
-            values.forEach((value) => {
-                valueArray.push({ data_type: 'image', value: value })
-            })
-            Object.assign(messageList, { data_type: 'multimodal_text', value: [{ data_type: 'text', value: message }, ...values.map(value => ({ data_type: 'image', value: value }))] })
+        const textMessage = { data_type: 'text', value: message }
+        const imgMessage = { data_type: 'image', value: values }
+
+        if (message.trim() && values.length >= 1) {
+            Object.assign(messageList, { data_type: 'multimodal_text', value: [textMessage, imgMessage] })
+        } else if (!message.trim() && values.length >= 1) {
+            Object.assign(messageList, imgMessage)
         }
         const channelName = params.get('channel_name') || ''
         ws?.publish(channelName, [messageList]).then(function () {
@@ -318,27 +314,85 @@ export function useSearch(cb?: () => void) {
 
     const adjustHeight = () => {
         if (searchInputRef.current) {
-            console.log(searchInputRef.current.scrollHeight);
             searchInputRef.current.style.height = 'inherit';
             searchInputRef.current.style.height = `${searchInputRef.current.scrollHeight}px`;
         }
     };
 
+    const [visible, setVisible] = useState(false)
+    const switchAction = () => {
+        setVisible(!visible)
+    }
+
+    const chooseImg = async () => {
+        switchAction()
+        wx.chooseImage({
+            sizeType: ['original', 'compressed'],
+            sourceType: ['album', 'camera'],
+            success: async (res: any) => {
+                const localIds = res.localIds;
+                eachGetBase64(localIds)
+            }
+        })
+    }
+
+    const eachGetBase64 = (ids: string[]) => {
+        showLoading()
+        let index = 0
+        let id: number
+        const imgArray: Base64DataType[] = []
+
+
+        const get = () => {
+            if (index >= ids.length) {
+                hideLoading()
+                setBase64DataArray(imgArray)
+                uploadFile(imgArray)
+                clearTimeout(id)
+                return
+            }
+            wx.getLocalImgData({
+                localId: ids[index], // 图片的localID
+                success: function (res: any) {
+                    const localData = res.localData;
+                    let imageBase64 = '';
+                    if (localData.indexOf('data:image') == 0) {
+                        imageBase64 = localData;
+                    } else {
+                        imageBase64 = 'data:image/jpeg;base64,' + localData.replace(/\n/g, '');
+                    }
+                    console.log('setbase 64');
+                    imgArray.push({ base: imageBase64, id: ids[index] })
+                    // setBase64DataArray([...base64DataArray, { base: imageBase64, id: ids[index] }])
+                    index++
+                    id = setTimeout(() => {
+                        get()
+                    }, 500)
+                }
+            });
+        }
+        get()
+    }
 
     const view = <>
         <div className='search-bar'>
             <>
-                <label className="upload-file">
-                    {isIos ? <input id='file-input' type="file" multiple onChange={fileChangeHandle} /> : <input id='file-input' type="file" multiple onChange={fileChangeHandle} capture="environment" />}
-                    <img className='icon' src={folder} alt="" />
-                </label>
+                <div className="upload-action">
+                    <img className='icon' style={{ width: '26px', height: '26px' }} src={expandDown} alt="" onClick={switchAction} />
+                    <img className='icon action-icon' onClick={chooseImg} style={{ transform: visible ? 'translateX(-50%) translateY(calc(1em + 15px))' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }} src={camera} alt="" />
+                    <div className='action-icon' style={{ transform: visible ? 'translateX(-50%) translateY(calc(2em + 30px))' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }}>
+                        <input id='file-input' style={{ display: 'none' }} type="file" multiple accept="image/*,application/pdf" onChange={fileChangeHandle} capture={false} />
+                        <label className="upload-file" htmlFor='file-input'>
+                            <img className='icon' src={folder} alt="" />
+                        </label>
+                    </div>
+                </div>
                 <div className="search-wrapper">
                     <div className="search">
                         <form action="." onKeyDown={keyDownHandle} style={{ flex: 1, display: 'flex' }}>
                             <textarea ref={searchInputRef} className="search-ipt" inputMode='search' rows={1} value={searchValue} onChange={onInput} placeholder='请输入想要搜索的问题' />
                         </form>
                     </div>
-                    {/* <canvas className={`send-voice ${aiStatus}`} onClick={start} id="canvas" /> */}
                     <div className="icon-wrapper">
                         <img src={voice} className='vioce-icon' alt="" onClick={showBall} />
                         <img src={search} className='search-icon' alt="" onClick={() => sendMessage(searchValue)} />
