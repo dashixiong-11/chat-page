@@ -85,7 +85,7 @@ const Model = ({ cb, remove, item }: { cb: () => void, remove: () => void, item:
       </div>
     </div>
     {
-      Object.keys(item.chan_info).length > 0 && <>
+      item.id === 4  && <>
         <div className="col">
           <div className="col-wrapper">
             <span>患者姓名</span>

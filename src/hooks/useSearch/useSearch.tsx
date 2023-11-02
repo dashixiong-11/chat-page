@@ -183,7 +183,6 @@ export function useSearch(cb?: () => void) {
         const files = e.target.files;
         if (!files) return;
 
-        // 检查是否所有选中的文件都是图片或PDF
         const isImageOrPDF = Array.from(files).every(file => {
             return file.type.match('image.*') || file.type === 'application/pdf';
         });
@@ -198,10 +197,9 @@ export function useSearch(cb?: () => void) {
 
         showLoading()
         try {
-            // 并行处理所有文件
             const promises = Array.from(files).map(file => pdf2png(file));
             const baseArrays = await Promise.all(promises);
-            const baseArray: any[] = baseArrays.flat(); // 如果pdf2png返回数组，则需要扁平化
+            const baseArray: any[] = baseArrays.flat();
             const ids = await uploadFile(baseArray)
             setImageIds(ids)
             setBase64DataArray(baseArray);
@@ -313,12 +311,14 @@ export function useSearch(cb?: () => void) {
         }).finally(() => {
             clearBase64DataArray()
             setSearchValue('')
-            adjustHeight()
+            if (!searchInputRef.current) return
+            searchInputRef.current.style.height = 'inherit';
         })
     }, [base64DataArray])
 
     const adjustHeight = () => {
         if (searchInputRef.current) {
+            console.log(searchInputRef.current.scrollHeight);
             searchInputRef.current.style.height = 'inherit';
             searchInputRef.current.style.height = `${searchInputRef.current.scrollHeight}px`;
         }
