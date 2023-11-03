@@ -134,7 +134,6 @@ const RecordBall = ({ remove, sendMessage }: {
 }
 
 
-
 type Base64DataType = { base: string, id: string }
 export function useSearch(cb?: () => void) {
     const [params] = useSearchParams()
