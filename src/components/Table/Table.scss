@@ -1,0 +1,62 @@
+.my-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        border: 1px solid black;
+        min-width: 100px;
+        word-wrap: break-word;
+        word-break: break-all;
+        padding: 6px;
+        text-align: center;
+    }
+
+    /* 为表头添加背景颜色 */
+    thead th {
+        background-color: #d0f6ff;
+        /* 绿色背景 */
+        /* 白色文字 */
+    }
+
+}
+
+.table-model {
+    background: #fff;
+    width: 80%;
+    border-radius: 10px;
+    box-shadow: 2px 2px 13px #858585;
+    padding: 8px 8px 10px;
+
+    .table-model-header {
+        padding: 5px 0;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        text-align: center;
+    }
+
+    .table-model-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+
+        div {
+            border: none;
+            background: none;
+            width: 50%;
+            padding: 5px;
+            text-align: center;
+        }
+        .confirm {
+            color: $main-color;
+            border-left: 1px solid #ccc;
+        }
+    }
+
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, UIEventHandler } from "react"
 import { useStore } from '@/hooks/useStore';
 import ai_avatar from '@/assets/icons/ai_avatar.png'
+import { Table } from '@/components/Table/Table';
 import './History.scss'
 
 
@@ -8,7 +9,7 @@ import './History.scss'
 const ListItem = ({ item }: { item: NewMessageType }) => {
 
 
-    const getMessageView = (message: MessageListType) => {
+    const getMessageView = (message: MessageListType, key: string) => {
         if (message.data_type === 'text') {
             return <span key={item.u?.offset}> {(message.value as string)}</span>
         } else if (message.data_type === 'multimodal_text') {
@@ -18,6 +19,15 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
                         <img className="message-image" src={(m.value as { url: string }).url} />
                     </div>
                     : (m.value as string)} </div>)
+        } else if (message.data_type === 'image') {
+            return message.value && (message.value as { url: string }[]).map(m => <div>
+                <img className="message-image" src={m.url} />
+            </div>
+            )
+        } else if (message.data_type === 'table') {
+            return <div style={{ width: '200px', overflowX: 'auto' }}>
+                <Table key={key} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
+            </div>
         }
     }
 
@@ -27,7 +37,7 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
             <div className="user-message-right right">
                 <span className='name'>{item.u?.id === localStorage.getItem('id') ? '我' : item.u?.name} </span>
                 <div className='message user-block'>
-                    {item['m'] && item['m'][0] && getMessageView(item['m'][0])}
+                    {item['m'] && item['m'][0] && getMessageView(item['m'][0], '001')}
                 </div>
             </div>
         </div>
@@ -45,7 +55,7 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
                             // } else {
                             //     return index2 === 1
                             // }
-                        }).map((msg) => { return getMessageView(msg) }
+                        }).map((msg, index3) => { return getMessageView(msg, index3 + '') }
                         )}
                     </div>
                 </div>

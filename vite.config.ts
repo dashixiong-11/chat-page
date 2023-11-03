@@ -42,6 +42,12 @@ export default defineConfig(({ mode }) => {
           target: ip,
           changeOrigin: true,
           secure: false,
+          bypass: (req, res, options) => {
+            const proxyUrl = new URL(options.rewrite(req.url) || '', (options.target) as string)?.href || ''
+            req.headers['x-req-proxyUrl'] = proxyUrl
+            res.setHeader('x-req-proxyUrl', proxyUrl)
+          },
+          rewrite: path => path.replace(/^\/im/, '/im')
         },
         '/filesystem': {
           target: ip,

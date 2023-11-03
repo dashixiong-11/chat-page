@@ -38,11 +38,14 @@ type CategoryListType = {
   value: number | string
 }[]
 
+type TableColumn = { title: string, dataIndex: string }
+type TableData = { columns: TableColumn[], lab_tests: Record<string, string>[] }
 type MessageListType = {
   data_type: 'multimodal_text',
   value: { data_type: 'text' | 'image' | 'voice' | 'table', value: string | { url: string } }[]
 }
-  | { data_type: 'text' | 'voice' | 'image' | 'table', value: string | { url: string } }
+  | {
+    data_type: 'text' | 'voice' | 'image' | 'table', value: string | { url: string }[] | TableData }
 
 type NewMessageType = {
   m?: MessageListType[]
