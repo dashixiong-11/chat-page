@@ -300,7 +300,7 @@ export function useSearch(cb?: () => void) {
 
         const channelName = params.get('channel_name') || ''
         ws?.publish(channelName, [messageList]).then(function () {
-        }, function (err) {
+        }, function () {
             showToast({
                 message: '发送失败',
                 duration: 1500
