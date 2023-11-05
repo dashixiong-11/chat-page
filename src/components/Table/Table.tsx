@@ -4,6 +4,7 @@ import { post } from '@/utils/server';
 import { useStore } from '@/hooks/useStore';
 import { useSearchParams } from 'react-router-dom';
 import './Table.scss'
+import { showToast } from '@/utils/loading';
 type Column = {
     title: string;
     dataIndex: string;
@@ -42,7 +43,7 @@ export function Table({ columns, dataSource }: { columns: Columns, dataSource: D
     const [params] = useSearchParams()
     const channelName = params.get('channel_name')
     const { portal, remove } = usePortal()
-    const [_columns, set_columns] = useState<Columns>(columns)
+    const [_columns] = useState<Columns>(columns)
     const [_dataSource, set_dataSource] = useState<DataSourceItem[]>(dataSource)
     const streamPosition = useStore((state) => state.streamPosition)
 
@@ -57,8 +58,18 @@ export function Table({ columns, dataSource }: { columns: Columns, dataSource: D
             original_offset: streamPosition.offset,
             lab_tests: cp
         }).catch(err => {
+            showToast({
+                message: '修改失败',
+                duration: 1500
+            })
             throw new Error(err)
         })
+        if (res.code === 0) {
+            showToast({
+                message: '成功',
+                duration: 1500
+            })
+        }
     }
 
     const onClick = (c: Column, d: DataSourceItem) => {
@@ -72,8 +83,8 @@ export function Table({ columns, dataSource }: { columns: Columns, dataSource: D
             </tr>
         </thead>
         <tbody>
-            {_dataSource && _dataSource.map((data) => (
-                <tr key={data.name}>
+            {_dataSource && _dataSource.map((data, index) => (
+                <tr key={data.name && data.name + index}>
                     {_columns && _columns.map(c => <td key={c.dataIndex} onClick={() => onClick(c, data)} >{data[c.dataIndex]}</td>)}
                 </tr>
             ))}

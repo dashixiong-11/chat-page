@@ -148,15 +148,19 @@ function Chat() {
   };
 
 
-  const messageView = (message: MessageListType,index:number) => {
+  const messageView = (message: MessageListType, index: number) => {
     if (message.data_type === 'multimodal_text') {
-      return message.value?.map(m => <>{m.data_type === 'text' ? m.value : m.data_type === 'image' ? '[图片]' : ''}</>)
+      return message.value?.map(m => <>{m.data_type === 'text' ?
+        <Markdown>{(m?.value as string)}</Markdown>
+        : m.data_type === 'image' ? '[图片]' : ''}</>)
     } else if (message.data_type === 'text') {
       return <Markdown>{(message?.value as string)}</Markdown>
     } else if (message.data_type === 'image') {
       return <span key={index} >[图片]</span>
     } else if (message.data_type === 'table') {
       return <Table key={index} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
+    } else if (message.data_type === 'link') {
+      return <a href={(message.value as string)} download>点击下载文件</a>
     }
   }
 
@@ -179,14 +183,16 @@ function Chat() {
       </div>
       <div className="search-res">
         {newMessage && newMessage.m && newMessage.m[0] &&
-          result.filter(f => f.data_type === 'text' || f.data_type === 'image' || f.data_type === 'table' || f.data_type === 'multimodal_text').map((res, index) =>
+          result.filter(f => f.data_type === 'text' || f.data_type === 'image' || f.data_type === 'table' || f.data_type === 'multimodal_text' || f.data_type === 'link').map((res, index) =>
             <div className='res-block' key={index}>
               {res?.value &&
-                <div className='cp-btn' onClick={() => copy((res?.value as string))}>
+                <div className='cp-btn' >
                   <span> {index === 0 ? '问题：' : index === 1 ? '回答：' : '其他：'} </span>
-                  {index !== 0 && res.data_type !== 'table' ? <span style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : ' '}
+                  {index !== 0 && res.data_type === 'text' ? <span onClick={() => copy((res?.value as string))} style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : ' '}
                 </div>}
-              {messageView(res, index)}
+              <div style={{ width: '100%', overflowX: 'auto' }}>
+                {messageView(res, index)}
+              </div>
             </div>
           )}
       </div>

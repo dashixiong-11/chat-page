@@ -5,7 +5,7 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useRef, useEffect, useCallback, ChangeEventHandler, ChangeEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, ChangeEventHandler, ChangeEvent, MouseEvent } from 'react'
 import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import { useSearchParams } from 'react-router-dom'
@@ -156,7 +156,10 @@ export function useSearch(cb?: () => void) {
         setBase64DataArray(updatedItems);
         setImageIds(updatedImageIds);
     }
-    const clearBase64DataArray = () => setBase64DataArray([])
+    const clearBase64DataArray = () => {
+        setBase64DataArray([])
+        setImageIds([])
+    }
 
     useEffect(() => {
         (async () => {
@@ -178,9 +181,12 @@ export function useSearch(cb?: () => void) {
 
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
-        switchAction()
+
         const files = e.target.files;
+
         if (!files) return;
+        console.log(files);
+
 
         const isImageOrPDF = Array.from(files).every(file => {
             return file.type.match('image.*') || file.type === 'application/pdf';
@@ -202,14 +208,16 @@ export function useSearch(cb?: () => void) {
             const ids = await uploadFile(baseArray)
             setImageIds(ids)
             setBase64DataArray(baseArray);
-
             hideLoading()
+            e.target.value = '';
         } catch (error) {
+            e.target.value = '';
             showToast({
                 message: '文件处理出错',
                 duration: 1500
             });
         }
+
     }
     const keyDownHandle: React.KeyboardEventHandler<HTMLFormElement> = e => {
         if (e.code === 'Enter') {
@@ -256,7 +264,6 @@ export function useSearch(cb?: () => void) {
 
         try {
             const res = await post<string[], FormData>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData)
-            console.log('res', res);
             return res.data
         } catch (error) {
             return []
@@ -316,12 +323,13 @@ export function useSearch(cb?: () => void) {
     };
 
     const [visible, setVisible] = useState(false)
-    const switchAction = () => {
+    const switchAction = (e: MouseEvent<HTMLDivElement>) => {
+        //  e.stopPropagation();
         setVisible(!visible)
     }
 
     const chooseImg = async () => {
-        switchAction()
+        console.log('chooseImage');
         wx.chooseImage({
             sizeType: ['original', 'compressed'],
             sourceType: ['album', 'camera'],
@@ -370,13 +378,27 @@ export function useSearch(cb?: () => void) {
         get()
     }
 
+    const hide = () => {
+        setVisible(false)
+    }
+    useEffect(() => {
+        if (visible) {
+            document.addEventListener('click', hide, true);
+        } else {
+            document.removeEventListener('click', hide, true);
+        }
+        return () => {
+            document.removeEventListener('click', hide, true);
+        };
+    }, [visible]);
+
     const view = <>
         <div className='search-bar'>
             <>
                 <div className="upload-action">
-                    <img className='icon' style={{ width: '26px', height: '26px' }} src={expandDown} alt="" onClick={switchAction} />
-                    <img className='icon action-icon' onClick={chooseImg} style={{ transform: visible ? 'translateX(-50%) translateY(calc(1em + 15px))' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }} src={camera} alt="" />
-                    <div className='action-icon' style={{ transform: visible ? 'translateX(-50%) translateY(calc(2em + 30px))' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }}>
+                    <img className='icon' src={expandDown} alt="" onClick={switchAction} />
+                    <img className='icon action-icon' onClick={chooseImg} style={{ transform: visible ? 'translateX(-50%) translateY(35px)' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }} src={camera} alt="" />
+                    <div className='action-icon' style={{ transform: visible ? 'translateX(-50%) translateY(calc(70px))' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }}>
                         <input id='file-input' style={{ display: 'none' }} type="file" multiple accept="image/*,application/pdf" onChange={fileChangeHandle} capture={false} />
                         <label className="upload-file" htmlFor='file-input'>
                             <img className='icon' src={folder} alt="" />
