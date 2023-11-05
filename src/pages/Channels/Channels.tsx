@@ -83,7 +83,7 @@ function Channels() {
       const channelItem = channel.channels[0]
       const { workDir } = channelItem.chan_info
       initializeSub(channelItem.name)
-      clearContext(channelItem.name)
+    //  clearContext(channelItem.name)
       navigate(`/chat?channel_name=${channelItem.name}&cn_name=${channelItem.cn_name}` + (workDir ? `&workDir=${workDir}` : ''), { replace: true })
     }
 
@@ -95,7 +95,7 @@ function Channels() {
     const { name, cn_name } = channel
     document.title = cn_name;
     const { workDir } = channel.chan_info
-    clearContext(name)
+   // clearContext(name)
     initializeSub(name)
     navigate(`/chat?channel_name=${name}&cn_name=${cn_name}` + (workDir ? `&workDir=${workDir}` : ''))
   }

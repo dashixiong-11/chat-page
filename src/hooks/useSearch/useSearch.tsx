@@ -5,7 +5,7 @@ import translation from '@/assets/icons/translation.svg'
 import close from '@/assets/icons/close_w.svg'
 import vioce from '@/assets/icons/voice.svg'
 import usePortal from "../usePortal/usePortal"
-import { useState, useRef, useEffect, useCallback, ChangeEventHandler, ChangeEvent, MouseEvent } from 'react'
+import { useState, useRef, useEffect, useCallback, ChangeEventHandler, ChangeEvent } from 'react'
 import { pdf2png } from '@/utils/pdf2png'
 import { jssdkAuthorize } from '@/utils/jssdkAuthorize'
 import { useSearchParams } from 'react-router-dom'
@@ -21,8 +21,6 @@ import './useSearch.scss'
 
 type RecordStatus = 'recording' | 'translation' | 'off' | 'done'
 
-const ua = navigator.userAgent.toLowerCase(); //判断是否是苹果手机，是则是true
-const isIos = (ua.indexOf('iphone') != -1) || (ua.indexOf('ipad') != -1);
 
 const RecordBall = ({ remove, sendMessage }: {
     remove: () => void,
@@ -181,12 +179,8 @@ export function useSearch(cb?: () => void) {
 
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
-
         const files = e.target.files;
-
         if (!files) return;
-        console.log(files);
-
 
         const isImageOrPDF = Array.from(files).every(file => {
             return file.type.match('image.*') || file.type === 'application/pdf';
@@ -245,12 +239,14 @@ export function useSearch(cb?: () => void) {
     }
 
     const uploadFile: (bs64: Base64DataType[]) => Promise<string[]> = async (bs64) => {
+
         if (!bs64.length) { return [] }
         const formData = new FormData
         for (let i = 0; i < bs64.length; i++) {
             try {
                 const blob = dataURLtoBlob(bs64[i].base)
                 const dimensions = await loadImageDimensions(bs64[i].base);
+
                 if (blob) {
                     formData.append('files', blob)
                     formData.append('widths', dimensions.width.toString())
@@ -264,6 +260,7 @@ export function useSearch(cb?: () => void) {
 
         try {
             const res = await post<string[], FormData>('/filesystem/api/upload-form' + (workDir ? `/${workDir}` : ''), formData)
+
             return res.data
         } catch (error) {
             return []
@@ -299,6 +296,8 @@ export function useSearch(cb?: () => void) {
         } else if (!message.trim() && values.length >= 1) {
             Object.assign(messageList, imgMessage)
         }
+
+
         const channelName = params.get('channel_name') || ''
         ws?.publish(channelName, [messageList]).then(function () {
         }, function (err) {
@@ -306,7 +305,6 @@ export function useSearch(cb?: () => void) {
                 message: '发送失败',
                 duration: 1500
             })
-            console.log('发送失败', err);
         }).finally(() => {
             clearBase64DataArray()
             setSearchValue('')
@@ -323,13 +321,11 @@ export function useSearch(cb?: () => void) {
     };
 
     const [visible, setVisible] = useState(false)
-    const switchAction = (e: MouseEvent<HTMLDivElement>) => {
-        //  e.stopPropagation();
+    const switchAction = () => {
         setVisible(!visible)
     }
 
     const chooseImg = async () => {
-        console.log('chooseImage');
         wx.chooseImage({
             sizeType: ['original', 'compressed'],
             sourceType: ['album', 'camera'],
@@ -347,11 +343,12 @@ export function useSearch(cb?: () => void) {
         const imgArray: Base64DataType[] = []
 
 
-        const get = () => {
+        const get = async () => {
             if (index >= ids.length) {
                 hideLoading()
+                const ids = await uploadFile(imgArray)
+                setImageIds(ids)
                 setBase64DataArray(imgArray)
-                uploadFile(imgArray)
                 clearTimeout(id)
                 return
             }
@@ -365,7 +362,6 @@ export function useSearch(cb?: () => void) {
                     } else {
                         imageBase64 = 'data:image/jpeg;base64,' + localData.replace(/\n/g, '');
                     }
-                    console.log('setbase 64');
                     imgArray.push({ base: imageBase64, id: ids[index] })
                     // setBase64DataArray([...base64DataArray, { base: imageBase64, id: ids[index] }])
                     index++

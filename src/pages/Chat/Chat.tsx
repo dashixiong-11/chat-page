@@ -129,6 +129,13 @@ function Chat() {
   }
 
   const copy = (text: string) => {
+    if (Object.prototype.toString.call(text) !== '[object string]') {
+      showToast({
+        message: '内容无法复制',
+        duration: 1500
+      })
+      return
+    }
     // First try to use the modern approach
     if (navigator.clipboard && window.isSecureContext) {
       // navigator.clipboard is available
@@ -160,7 +167,12 @@ function Chat() {
     } else if (message.data_type === 'table') {
       return <Table key={index} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
     } else if (message.data_type === 'link') {
-      return <a href={(message.value as string)} download>点击下载文件</a>
+      return <>
+        <span>下载地址:</span> <span>
+          {(message.value as string)}
+        </span>
+        <span >点击右上角复制按钮复制下载地址，前往浏览器打开下载</span>
+      </>
     }
   }
 
