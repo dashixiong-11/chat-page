@@ -367,7 +367,7 @@ export function useSearch(cb?: () => void) {
                     index++
                     id = setTimeout(() => {
                         get()
-                    }, 500)
+                    }, 500) as unknown as number
                 }
             });
         }

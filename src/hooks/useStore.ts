@@ -93,7 +93,7 @@ const useStore = create<StoreType>((set, get) => {
                 const id = setTimeout(() => {
                     cb && cb()
                     clearTimeout(id)
-                }, 500)
+                }, 500) as unknown as number
                 //     reconnectAttempts.current = 0
             }).on('error', function (ctx) {
                 console.log('连接失败', ctx);
@@ -141,7 +141,7 @@ const useStore = create<StoreType>((set, get) => {
                 const id = setTimeout(() => {
                     cb && cb()
                     clearTimeout(id)
-                }, 500)
+                }, 500) as unknown as number
             }).on('publication', async function (ctx) {
                 console.log('新消息', ctx);
                 const { data, info, tags, offset } = ctx
