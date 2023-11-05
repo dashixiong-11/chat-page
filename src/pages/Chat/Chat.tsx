@@ -168,10 +168,9 @@ function Chat() {
       return <Table key={index} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
     } else if (message.data_type === 'link') {
       return <>
-        <span>下载地址:</span> <span>
-          {(message.value as string)}
-        </span>
-        <span >点击右上角复制按钮复制下载地址，前往浏览器打开下载</span>
+        <div>下载地址:</div>
+        <div style={{ margin: '4px 0' }}> {(message.value as string)} </div>
+        <div style={{ fontSize: '12px', color: '#333' }} >点击右上角复制按钮复制下载地址，前往浏览器打开下载</div>
       </>
     }
   }
@@ -200,7 +199,7 @@ function Chat() {
               {res?.value &&
                 <div className='cp-btn' >
                   <span> {index === 0 ? '问题：' : index === 1 ? '回答：' : '其他：'} </span>
-                  {index !== 0 && res.data_type === 'text' ? <span onClick={() => copy((res?.value as string))} style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : ' '}
+                  {index !== 0 && (res.data_type === 'text' || res.data_type === 'link') ? <span onClick={() => copy((res?.value as string))} style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : ' '}
                 </div>}
               <div style={{ width: '100%', overflowX: 'auto' }}>
                 {messageView(res, index)}
