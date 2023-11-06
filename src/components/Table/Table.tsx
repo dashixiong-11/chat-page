@@ -79,13 +79,13 @@ export function Table({ columns, dataSource }: { columns: Columns, dataSource: D
     return <table className="my-table">
         <thead>
             <tr>
-                {_columns && _columns.map(c => <th key={c.dataIndex}>{c.title}</th>)}
+                {_columns && _columns.map(c => <th key={c.dataIndex+'tr'}>{c.title}</th>)}
             </tr>
         </thead>
         <tbody>
             {_dataSource && _dataSource.map((data, index) => (
-                <tr key={data.name && data.name + index}>
-                    {_columns && _columns.map(c => <td key={c.dataIndex} onClick={() => onClick(c, data)} >{data[c.dataIndex]}</td>)}
+                <tr key={data.name && data.name + index + '-tr'}>
+                    {_columns && _columns.map(c => <td key={c.dataIndex+'-td'} onClick={() => onClick(c, data)} >{data[c.dataIndex]}</td>)}
                 </tr>
             ))}
         </tbody>

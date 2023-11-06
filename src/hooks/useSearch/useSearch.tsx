@@ -418,6 +418,7 @@ export function useSearch(cb?: () => void) {
 
     return {
         view,
+        sendMessage,
         base64DataArray,
         removeBase64Data,
     }

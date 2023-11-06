@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore } from '@/hooks/useStore';
 import { useSearch } from '@/hooks/useSearch/useSearch';
 import history from '@/assets/icons/history.svg'
+import fileConversion from '@/assets/icons/file-conversion.svg'
 import close from '@/assets/icons/close_w.svg'
 import Markdown from 'react-markdown'
 import { showToast } from '@/utils/loading';
@@ -59,7 +60,7 @@ const BallLoading = () => {
 }
 function Chat() {
   const navigate = useNavigate()
-  const { view, base64DataArray, removeBase64Data } = useSearch(() => {
+  const { view, sendMessage, base64DataArray, removeBase64Data } = useSearch(() => {
     // showLoading()
     showBallLoading()
   })
@@ -129,7 +130,8 @@ function Chat() {
   }
 
   const copy = (text: string) => {
-    if (Object.prototype.toString.call(text) !== '[object string]') {
+
+    if (Object.prototype.toString.call(text) !== '[object String]') {
       showToast({
         message: '内容无法复制',
         duration: 1500
@@ -175,6 +177,14 @@ function Chat() {
     }
   }
 
+  const transTable = () => {
+    sendMessage(`
+    {
+      "button": "收集当前文件夹所有json数据生成Excel表格，表格应该按照以下列顺序排列，并以中文作为表头：\n\n日期 (date)\n代号 (test_code)\n项目 (test_name)\n结果 (test_result)\n参考值 (reference_value)\n单位 (unit)\n确保每一列数据都正确对应到它们的表头，并且所有的数据都按照提供的顺序展示"
+    }
+   `)
+  }
+
   return <div className="chat"  >
     <div className="floating-ball" onClick={() => to('/history')}>
       <img src={history} alt="" />
@@ -182,7 +192,7 @@ function Chat() {
     <main style={{ height: '100vh' }} >
       <div className="main-header">
         {view}
-        {base64DataArray.length > 0 &&
+        {base64DataArray.length > 0 && <>
           <div className="imgs">
             {base64DataArray.map((base64, index) => <div key={base64.id} className="img-item">
               <div className="remove-icon-wrapper" onClick={() => removeBase64Data(index)}>
@@ -190,7 +200,8 @@ function Chat() {
               </div>
               <img className='search-img' src={base64.base} />
             </div>)}
-          </div>}
+          </div>
+        </>}
       </div>
       <div className="search-res">
         {newMessage && newMessage.m && newMessage.m[0] &&
@@ -199,7 +210,10 @@ function Chat() {
               {res?.value &&
                 <div className='cp-btn' >
                   <span> {index === 0 ? '问题：' : index === 1 ? '回答：' : '其他：'} </span>
-                  {index !== 0 && (res.data_type === 'text' || res.data_type === 'link') ? <span onClick={() => copy((res?.value as string))} style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : ' '}
+                  {index !== 0 && (res.data_type === 'text' || res.data_type === 'link') ?
+                    <span onClick={() => copy((res?.value as string))} style={{ fontWeight: 'bold', color: '#3478f5', fontSize: '13px' }}> 复制 </span> : res.data_type === 'table' ?
+                      <img src={fileConversion} onClick={transTable} className='file-conversion' alt="" />
+                      : ''}
                 </div>}
               <div style={{ width: '100%', overflowX: 'auto' }}>
                 {messageView(res, index)}
