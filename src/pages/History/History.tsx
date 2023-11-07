@@ -15,14 +15,15 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
         if (message.data_type === 'text') {
             return <span key={item.u?.offset}> {(message.value as string)}</span>
         } else if (message.data_type === 'multimodal_text') {
-            return (message.value as { data_type: 'text' | 'image', value: string | { url: string } }[])
+            return (message.value as { data_type: 'text' | 'image', value: string | { url: string }[] }[])
                 .map((m, index) => <div key={index + '-' + m.data_type}>{m.data_type === 'image' ?
-                    <div>
-                        <ImageWithPreview width="200px" height="200px" url={(m.value as { url: string }).url} />
-                    </div>
+                    (m.value as { url: string }[]).map((u, uIndex) =>
+                        <ImageWithPreview key={uIndex} width="200px" height="200px" url={u.url} />
+                    )
+
                     : (m.value as string)} </div>)
         } else if (message.data_type === 'image') {
-            return message.value && (message.value as { url: string }[]).map(m => <div>
+            return message.value && (message.value as { url: string }[]).map((m, index) => <div key={index}>
                 <ImageWithPreview width="200px" height="200px" url={m.url} />
             </div>
             )
