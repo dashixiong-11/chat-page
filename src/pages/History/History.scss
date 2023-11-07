@@ -4,8 +4,9 @@
     left: 0;
     right: 0;
     padding: 0 20px;
-    height: 100vh;
+    height: 99vh;
     overflow: auto;
+    z-index: 99;
     background-color: #f9f9f9;
 
     .scroll-container {
@@ -75,7 +76,7 @@
 
                 .message-image {
                     max-width: 200px;
-                    max-height: 200pxpx;
+                    max-height: 200px;
                 }
             }
         }

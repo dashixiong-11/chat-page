@@ -10,6 +10,7 @@ import { showToast } from '@/utils/loading';
 import usePortal from '@/hooks/usePortal/usePortal';
 import { Parser, Player } from 'svga'
 import ballurl from '../../assets/animation/ball.svga?url'
+import { ImageWithPreview } from '@/components/ImageWithPreview/ImageWithPreview';
 import { Table } from '@/components/Table/Table';
 import './Chat.scss'
 
@@ -157,21 +158,22 @@ function Chat() {
   };
 
 
+
   const messageView = (message: MessageListType, index: number) => {
     if (message.data_type === 'multimodal_text') {
       return message.value?.map(m => <>{m.data_type === 'text' ?
         <Markdown>{(m?.value as string)}</Markdown>
-        : m.data_type === 'image' ? '[图片]' : ''}</>)
+        : m.data_type === 'image' ? (m.value as { url: string }[]).map((u, uIndex) => <ImageWithPreview url={u.url} key={index + '-' + uIndex} />) : ''}</>)
     } else if (message.data_type === 'text') {
       return <Markdown>{(message?.value as string)}</Markdown>
     } else if (message.data_type === 'image') {
-      return <span key={index} >[图片]</span>
+      return (message.value as { url: string }[])?.map((u, uIndex) => <ImageWithPreview key={index + '-' + uIndex} url={u.url} />)
     } else if (message.data_type === 'table') {
       return <Table key={index} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
     } else if (message.data_type === 'link') {
       return <>
         <div>下载地址:</div>
-        <div style={{ margin: '4px 0' }}> {(message.value as string)} </div>
+        <div style={{ padding: '8px 0' }}> {(message.value as string)} </div>
         <div style={{ fontSize: '12px', color: '#333' }} >点击右上角复制按钮复制下载地址，前往浏览器打开下载</div>
       </>
     }

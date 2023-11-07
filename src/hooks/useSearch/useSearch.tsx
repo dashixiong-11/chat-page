@@ -16,6 +16,7 @@ import search from '@/assets/icons/search-line.svg'
 import camera from '@/assets/icons/camera.svg'
 import expandDown from '@/assets/icons/expand-down.svg'
 import voice from '@/assets/icons/voice-line.svg'
+import { ImageWithPreview } from '@/components/ImageWithPreview/ImageWithPreview';
 import wx from 'jweixin-1.6.0'
 import './useSearch.scss'
 
@@ -326,6 +327,8 @@ export function useSearch(cb?: () => void) {
     }
 
     const chooseImg = async () => {
+        console.log('wx1111',wx);
+        
         wx.chooseImage({
             sizeType: ['original', 'compressed'],
             sourceType: ['album', 'camera'],

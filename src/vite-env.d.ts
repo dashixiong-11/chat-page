@@ -9,6 +9,7 @@ interface wx {
   startRecord: any,
   stopRecord: (data: { success: (res: { localId: string }) => void }) => void,
   chooseImage: ({ }: any) => void,
+  previewImage: ({ current, urls }: { current: string, urls: string[] }) => void,
   checkJsApi: any,
   config: any,
   error: any,
@@ -37,15 +38,16 @@ type CategoryListType = {
   text: string,
   value: number | string
 }[]
-type DataType  = 'text' | 'image' | 'voice' | 'table' | 'link'
+type DataType = 'text' | 'image' | 'voice' | 'table' | 'link'
 type TableColumn = { title: string, dataIndex: string }
 type TableData = { columns: TableColumn[], lab_tests: Record<string, string>[] }
 type MessageListType = {
   data_type: 'multimodal_text',
-  value: { data_type: DataType, value: string | { url: string } }[]
+  value: { data_type: DataType, value: string | { url: string }[] }[]
 }
   | {
-    data_type: DataType, value: string | { url: string }[] | TableData }
+    data_type: DataType, value: string | { url: string }[] | TableData
+  }
 
 type NewMessageType = {
   m?: MessageListType[]

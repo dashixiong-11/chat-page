@@ -132,6 +132,13 @@
                 word-wrap: break-word;
                 margin-bottom: 1em;
 
+                .message-img {
+                    width: 50px;
+                    height: 50px;
+                    object-fit: cover;
+                    margin-right: 1em;
+                }
+
                 .cp-btn {
                     display: flex;
                     align-items: center;

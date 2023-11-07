@@ -39,7 +39,7 @@ const Model = ({ column, data, remove, cb }: { column: Column, data: DataSourceI
         </div>
     </div >
 }
-export function Table({ columns, dataSource }: { columns: Columns, dataSource: DataSourceItem[] }) {
+export function Table({ columns, dataSource, disabled = false }: { columns: Columns, dataSource: DataSourceItem[], disabled?: Boolean }) {
     const [params] = useSearchParams()
     const channelName = params.get('channel_name')
     const { portal, remove } = usePortal()
@@ -73,19 +73,20 @@ export function Table({ columns, dataSource }: { columns: Columns, dataSource: D
     }
 
     const onClick = (c: Column, d: DataSourceItem) => {
+        if (disabled) return
         portal(<Model column={c} data={d} remove={remove} cb={cb} />)
     }
 
     return <table className="my-table">
         <thead>
             <tr>
-                {_columns && _columns.map(c => <th key={c.dataIndex+'tr'}>{c.title}</th>)}
+                {_columns && _columns.map(c => <th key={c.dataIndex + 'tr'}>{c.title}</th>)}
             </tr>
         </thead>
         <tbody>
             {_dataSource && _dataSource.map((data, index) => (
                 <tr key={data.name && data.name + index + '-tr'}>
-                    {_columns && _columns.map(c => <td key={c.dataIndex+'-td'} onClick={() => onClick(c, data)} >{data[c.dataIndex]}</td>)}
+                    {_columns && _columns.map(c => <td key={c.dataIndex + '-td'} onClick={() => onClick(c, data)} >{data[c.dataIndex]}</td>)}
                 </tr>
             ))}
         </tbody>

@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, UIEventHandler } from "react"
 import { useStore } from '@/hooks/useStore';
 import ai_avatar from '@/assets/icons/ai_avatar.png'
 import { Table } from '@/components/Table/Table';
+import { showLoading, hideLoading } from "@/utils/loading";
+import { ImageWithPreview } from "@/components/ImageWithPreview/ImageWithPreview";
 import './History.scss'
 
 
@@ -16,17 +18,17 @@ const ListItem = ({ item }: { item: NewMessageType }) => {
             return (message.value as { data_type: 'text' | 'image', value: string | { url: string } }[])
                 .map((m, index) => <div key={index + '-' + m.data_type}>{m.data_type === 'image' ?
                     <div>
-                        <img className="message-image" src={(m.value as { url: string }).url} />
+                        <ImageWithPreview width="200px" height="200px" url={(m.value as { url: string }).url} />
                     </div>
                     : (m.value as string)} </div>)
         } else if (message.data_type === 'image') {
             return message.value && (message.value as { url: string }[]).map(m => <div>
-                <img className="message-image" src={m.url} />
+                <ImageWithPreview width="200px" height="200px" url={m.url} />
             </div>
             )
         } else if (message.data_type === 'table') {
             return <div style={{ width: '200px', overflowX: 'auto' }}>
-                <Table key={key} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
+                <Table key={key} disabled={true} columns={(message.value as TableData)?.columns} dataSource={(message.value as TableData)?.lab_tests} />
             </div>
         }
     }
@@ -111,7 +113,10 @@ function History() {
 
 
     useEffect(() => {
-        getHistory()
+        showLoading()
+        getHistory(null, () => {
+            hideLoading()
+        })
     }, [])
 
 
@@ -134,8 +139,9 @@ function History() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !jsControl.current) {
-                    // setIsloading(true)
+                    showLoading()
                     getHistory(currentOffset, () => {
+                        hideLoading()
                         //   setIsloading(false)
                     })
                 }

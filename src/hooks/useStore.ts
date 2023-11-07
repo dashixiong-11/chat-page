@@ -13,7 +13,7 @@ type StoreType = {
     streamPosition: StreamPosition,
     initializeWs: (token: string, cb?: () => void) => void,
     initializeSub: (channelName: string, cb?: () => void) => void,
-    getHistory: (offset?: number, cb?: () => void) => void,
+    getHistory: (offset?: number | null, cb?: () => void) => void,
     setSub: (s: Subscription | null) => void,
     modifyList: (message: NewMessageType | NewMessageType[]) => void,
     setStreamPosition: (position: SubsetKeys<StreamPosition>) => void,
@@ -43,9 +43,7 @@ const useStore = create<StoreType>((set, get) => {
             console.log('sp', sp);
             console.log('offset', offset);
 
-            if (offset) {
-                sp.offset = offset
-            }
+            if (offset) { sp.offset = offset }
             if (sp.offset === 1) {
                 cb && cb()
                 return
