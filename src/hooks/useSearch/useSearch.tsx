@@ -179,6 +179,8 @@ export function useSearch(cb?: () => void) {
 
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
+        console.log(e);
+        
         const files = e.target.files;
         if (!files) return;
 
@@ -326,8 +328,6 @@ export function useSearch(cb?: () => void) {
     }
 
     const chooseImg = async () => {
-        console.log('wx1111',wx);
-        
         wx.chooseImage({
             sizeType: ['original', 'compressed'],
             sourceType: ['album', 'camera'],
@@ -397,7 +397,7 @@ export function useSearch(cb?: () => void) {
                     <img className='icon' src={expandDown} alt="" onClick={switchAction} />
                     <img className='icon action-icon' onClick={chooseImg} style={{ transform: visible ? 'translateX(-50%) translateY(35px)' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }} src={camera} alt="" />
                     <div className='action-icon' style={{ transform: visible ? 'translateX(-50%) translateY(calc(70px))' : '', opacity: visible ? 1 : 0, zIndex: visible ? 2 : '-1' }}>
-                        <input id='file-input' style={{ display: 'none' }} type="file" multiple accept="image/*,application/pdf" onChange={fileChangeHandle} capture={false} />
+                        <input id='file-input' style={{ display: 'none' }} type="file" multiple accept="application/pdf" onChange={fileChangeHandle} capture={false} />
                         <label className="upload-file" htmlFor='file-input'>
                             <img className='icon' src={folder} alt="" />
                         </label>
