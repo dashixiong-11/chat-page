@@ -143,17 +143,20 @@ const useStore = create<StoreType>((set, get) => {
             }).on('publication', async function (ctx) {
                 console.log('新消息', ctx);
                 const { data, info, tags, offset } = ctx
-                const sp = JSON.parse(JSON.stringify(get().streamPosition))
-                get().setStreamPosition(Object.assign(sp, { offset: offset }))
-                const msg = {
-                    m: data, u: {
-                        id: info?.user || '',
-                        revise: tags?.revise,
-                        avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined
+                const currentOffset = get().streamPosition?.offset || 0
+                if (offset && offset >= currentOffset) {
+                    const sp = JSON.parse(JSON.stringify(get().streamPosition))
+                    get().setStreamPosition(Object.assign(sp, { offset: offset }))
+                    const msg = {
+                        m: data, u: {
+                            id: info?.user || '',
+                            revise: tags?.revise,
+                            avatar: tags?.avatar || '', name: tags?.nickname || '', offset: ctx.offset || undefined
+                        }
                     }
+                    get().modifyList(msg)
+                    set({ newMessage: msg })
                 }
-                get().modifyList(msg)
-                set({ newMessage: msg })
             }).on('error', (error) => {
                 console.log('error', error);
 
