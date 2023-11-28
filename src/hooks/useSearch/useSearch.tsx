@@ -180,7 +180,7 @@ export function useSearch(cb?: () => void) {
 
     const fileChangeHandle: ChangeEventHandler<HTMLInputElement> = async (e) => {
         console.log(e);
-        
+
         const files = e.target.files;
         if (!files) return;
 
@@ -316,7 +316,7 @@ export function useSearch(cb?: () => void) {
     }, [base64DataArray])
 
     const adjustHeight = () => {
-        if (searchInputRef.current) {
+        if (searchInputRef.current && searchInputRef.current.scrollHeight < 120) {
             searchInputRef.current.style.height = 'inherit';
             searchInputRef.current.style.height = `${searchInputRef.current.scrollHeight}px`;
         }
